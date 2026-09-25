@@ -1,0 +1,15 @@
+{
+  "name": "rally",
+  "version": "0.0.1",
+  "description": "A mobile app to connect the people and the parties",
+  "author": "Freddie Ley",
+  "type": "module",
+  "main": "src/app.ts",
+  "scripts": {
+    "test": "node run dev"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-native": "^0.84.1"
+  }
+}
