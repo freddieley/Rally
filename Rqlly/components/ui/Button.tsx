@@ -133,6 +133,32 @@ export function RqllyButton({
     }).start();
   };
 
+  const hover = useRef(
+    new Animated.Value(0),
+  ).current;
+
+  const animateHover = (
+    value: number,
+  ) => {
+    if (disabled || loading) {
+      return;
+    }
+
+    Animated.spring(hover, {
+      toValue: value,
+      damping: 18,
+      stiffness: 220,
+      mass: 0.65,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hoverScale =
+    hover.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 1.025],
+    });
+
   return (
     <Pressable
       onPress={onPress}
@@ -154,6 +180,12 @@ export function RqllyButton({
           ? 'stretch'
           : 'flex-start',
       }}
+      onHoverIn={() =>
+        animateHover(1)
+      }
+      onHoverOut={() =>
+        animateHover(0)
+      }
     >
       <Animated.View
         style={[
@@ -174,7 +206,12 @@ export function RqllyButton({
               ? 0.45
               : 1,
             transform: [
-              { scale },
+              {
+                scale: Animated.multiply(
+                  hoverScale,
+                  scale,
+                ),
+              },
             ],
           },
           style,

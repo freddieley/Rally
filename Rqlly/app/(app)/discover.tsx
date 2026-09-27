@@ -34,6 +34,10 @@ import {
 } from '../../components/PartyCard';
 
 import {
+  RqllyPressable,
+} from '../../components/motion/RqllyPressable';
+
+import {
   RqllyScreen,
 } from '../../components/motion/RqllyScreen';
 
@@ -304,18 +308,14 @@ export default function DiscoverScreen() {
                   activeTab === tab.key;
 
                 return (
-                  <Pressable
+                  <RqllyPressable
                     key={tab.key}
                     onPress={() =>
-                      setActiveTab(
-                        tab.key,
-                      )
+                      setActiveTab(tab.key)
                     }
-                    style={({ pressed }) => [
-                      styles.tab,
-                      pressed &&
-                        styles.tabPressed,
-                    ]}
+                    hoverScale={1.025}
+                    pressedScale={0.97}
+                    style={styles.tab}
                     accessibilityRole="tab"
                     accessibilityState={{
                       selected: active,
@@ -341,14 +341,13 @@ export default function DiscoverScreen() {
                       style={[
                         styles.tabIndicator,
                         {
-                          opacity:
-                            active
-                              ? 1
-                              : 0,
+                          opacity: active
+                            ? 1
+                            : 0,
                         },
                       ]}
                     />
-                  </Pressable>
+                  </RqllyPressable>
                 );
               })}
             </View>
@@ -591,13 +590,10 @@ const styles = StyleSheet.create({
     marginRight:
       spacing.xl,
 
-    alignItems: 'flex-start',
-    justifyContent:
-      'center',
-  },
+    height: 48,
 
-  tabPressed: {
-    opacity: 0.65,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
 
   tabText: {
@@ -613,7 +609,7 @@ const styles = StyleSheet.create({
 
     left: 0,
     right: 0,
-    bottom: -1,
+    bottom: 0,
 
     height: 2,
 
@@ -622,6 +618,10 @@ const styles = StyleSheet.create({
 
     backgroundColor:
       colors.brand,
+  },
+
+  tabPressed: {
+    opacity: 0.65,
   },
 
   sectionHeader: {

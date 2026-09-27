@@ -28,7 +28,13 @@ export const motion = {
 
   scale: {
     pressed: 0.975,
+    hover: 1.012,
     entrance: 0.985,
+  },
+
+  hover: {
+    lift: -4,
+    duration: 180,
   },
 
   spring: {
@@ -36,6 +42,12 @@ export const motion = {
       damping: 18,
       stiffness: 300,
       mass: 0.5,
+    },
+
+    hover: {
+      damping: 18,
+      stiffness: 220,
+      mass: 0.65,
     },
 
     entrance: {

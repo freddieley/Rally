@@ -28,6 +28,10 @@ import {
   spacing,
 } from '../../components/ui';
 
+import {
+  RqllyPressable,
+} from '../../components/motion/RqllyPressable';
+
 type NavRoute =
   | '/discover'
   | '/messages'
@@ -185,7 +189,7 @@ function NavigationItem({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <RqllyPressable
       accessibilityRole="button"
       accessibilityLabel={
         item.label
@@ -194,10 +198,9 @@ function NavigationItem({
         selected: active,
       }}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.navigationItem,
-        pressed && styles.navigationPressed,
-      ]}
+      hoverScale={1.04}
+      pressedScale={0.94}
+      style={styles.navigationItem}
     >
       <View
         style={[
@@ -226,7 +229,7 @@ function NavigationItem({
       >
         {item.label}
       </RqllyText>
-    </Pressable>
+    </RqllyPressable>
   );
 }
 
@@ -238,18 +241,18 @@ function CreateNavigationItem({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <RqllyPressable
       accessibilityRole="button"
       accessibilityLabel="Create a party"
       accessibilityState={{
         selected: active,
       }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.navigationItem,
-        pressed &&
-          styles.navigationPressed,
-      ]}
+      onPress={() =>
+        router.push('/create')
+      }
+      hoverScale={1.035}
+      pressedScale={0.94}
+      style={styles.navigationItem}
     >
       <View
         style={
@@ -257,7 +260,11 @@ function CreateNavigationItem({
         }
       >
         <View
-          style={styles.createButton}
+          style={[
+            styles.createButton,
+              active &&
+              styles.createButtonActive,
+          ]}
         >
           <TextPlus />
         </View>
@@ -277,7 +284,7 @@ function CreateNavigationItem({
       >
         Create
       </RqllyText>
-    </Pressable>
+    </RqllyPressable>
   );
 }
 
