@@ -203,7 +203,8 @@ export function PartyCard({
       onPress={onOpen}
       hoverScale={1}
       pressedScale={1}
-      accessibilityRole="button"
+      // Card wraps a nested JOIN button, so it can't be a real <button> on web (no nested buttons).
+      accessibilityRole="none"
       accessibilityLabel={`${title} party`}
       accessibilityHint="Open party details"
       style={{
