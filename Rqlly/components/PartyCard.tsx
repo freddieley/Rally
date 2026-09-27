@@ -45,10 +45,10 @@ export type PartyCardProps = {
   onRegister?: () => void;
 };
 
-const DEFAULT_HEIGHT = 248;
+const DEFAULT_HEIGHT = 224;
 
-const CARD_RADIUS = 30;
-const DIAGONAL = 52;
+const CARD_RADIUS = 28;
+const DIAGONAL = 44;
 
 function createPartyPath(
   width: number,
@@ -97,24 +97,18 @@ export function PartyCard({
   const [open, setOpen] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  /*
-   * One spatial value controls the entire
-   * card transition.
-   *
-   * 0 = closed
-   * 1 = expanded
-   */
   const progress = useRef(
     new Animated.Value(0),
   ).current;
 
-  /*
-   * Tiny tactile press animation.
-   * Felt more than seen.
-   */
   const press = useRef(
     new Animated.Value(0),
   ).current;
+
+  const spotsLeft =
+    capacity !== undefined
+      ? Math.max(capacity - going, 0)
+      : undefined;
 
   const animatePress = (value: number) => {
     Animated.timing(press, {
@@ -132,11 +126,9 @@ export function PartyCard({
 
     setOpen(true);
 
-    progress.stopAnimation();
-
     Animated.timing(progress, {
       toValue: 1,
-      duration: 390,
+      duration: 380,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
@@ -147,11 +139,9 @@ export function PartyCard({
       return;
     }
 
-    progress.stopAnimation();
-
     Animated.timing(progress, {
       toValue: 0,
-      duration: 330,
+      duration: 300,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: true,
     }).start(({ finished }) => {
@@ -161,45 +151,35 @@ export function PartyCard({
     });
   };
 
-  const handleFrontPress = () => {
+  const toggleParty = () => {
     animatePress(0);
 
     if (open) {
       closeParty();
-      return;
+    } else {
+      openParty();
     }
-
-    openParty();
   };
 
   /*
-   * ------------------------------------------------------------
-   * FRONT SURFACE
-   * ------------------------------------------------------------
+   * FRONT
    *
-   * This intentionally stays visible during the transition.
-   * It pulls diagonally away rather than simply fading out.
-   * That is the part of the original interaction that gives
-   * the card its "physical" feel.
+   * The original Rally interaction is preserved:
+   * the front surface physically moves away rather
+   * than simply disappearing.
    */
 
   const frontTranslateX =
-    Animated.add(
-      progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, -38],
-      }),
-      press.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0],
-      }),
-    );
+    progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, -34],
+    });
 
   const frontTranslateY =
     Animated.add(
       progress.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, -30],
+        outputRange: [0, -25],
       }),
       press.interpolate({
         inputRange: [0, 1],
@@ -210,60 +190,59 @@ export function PartyCard({
   const frontScale =
     progress.interpolate({
       inputRange: [0, 0.55, 1],
-      outputRange: [1, 0.985, 0.965],
+      outputRange: [1, 0.99, 0.975],
     });
 
-  const frontShadowOpacity =
+  const frontOpacity =
     progress.interpolate({
-      inputRange: [0, 0.45, 1],
-      outputRange: [0.34, 0.2, 0],
+      inputRange: [0, 0.65, 1],
+      outputRange: [1, 0.72, 0],
+    });
+
+  const frontShadow =
+    progress.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [0.3, 0.16, 0],
     });
 
   /*
-   * ------------------------------------------------------------
-   * EXPANDED SURFACE
-   * ------------------------------------------------------------
+   * BACK / DETAILS
    */
 
-  const pageScale =
+  const detailsOpacity =
+    progress.interpolate({
+      inputRange: [0, 0.15, 0.52, 1],
+      outputRange: [0, 0.22, 0.8, 1],
+    });
+
+  const detailsTranslateY =
     progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.965, 1],
+      outputRange: [12, 0],
     });
 
-  const pageTranslateY =
+  const detailsScale =
     progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [14, 0],
-    });
-
-  const pageOpacity =
-    progress.interpolate({
-      inputRange: [0, 0.16, 0.5, 1],
-      outputRange: [0, 0.35, 0.85, 1],
-    });
-
-  const actionTranslateY =
-    progress.interpolate({
-      inputRange: [0, 0.45, 1],
-      outputRange: [10, 4, 0],
+      outputRange: [0.975, 1],
     });
 
   const actionOpacity =
     progress.interpolate({
-      inputRange: [0, 0.45, 0.75, 1],
-      outputRange: [0, 0, 0.75, 1],
+      inputRange: [0, 0.5, 0.78, 1],
+      outputRange: [0, 0, 0.65, 1],
+    });
+
+  const actionTranslateY =
+    progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [8, 0],
     });
 
   const path = createPartyPath(
     cardWidth,
     height,
   );
-
-  const spotsLeft =
-    capacity !== undefined
-      ? Math.max(capacity - going, 0)
-      : undefined;
 
   return (
     <View
@@ -276,7 +255,7 @@ export function PartyCard({
       ]}
     >
       {/* ======================================================
-          EXPANDED PARTY SURFACE
+          DETAILS SURFACE
           ====================================================== */}
 
       <Animated.View
@@ -284,33 +263,33 @@ export function PartyCard({
           open ? 'auto' : 'none'
         }
         style={[
-          styles.expandedCard,
+          styles.detailsCard,
           {
             width: cardWidth,
             height,
 
-            opacity: pageOpacity,
+            opacity: detailsOpacity,
 
             transform: [
               {
-                translateY: pageTranslateY,
+                translateY: detailsTranslateY,
               },
               {
-                scale: pageScale,
+                scale: detailsScale,
               },
             ],
           },
         ]}
       >
-        <View style={styles.expandedContent}>
-          {/* HEADER */}
+        <View style={styles.detailsContent}>
+          {/* TOP */}
 
           <View>
-            <View style={styles.expandedHeader}>
-              <View style={styles.eyebrow}>
-                <View style={styles.liveDot} />
+            <View style={styles.detailsTopRow}>
+              <View style={styles.partyType}>
+                <View style={styles.partyDot} />
 
-                <Text style={styles.eyebrowText}>
+                <Text style={styles.partyTypeText}>
                   PARTY
                 </Text>
               </View>
@@ -324,10 +303,10 @@ export function PartyCard({
                     styles.viewButtonPressed,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel={`View full ${title} party`}
+                accessibilityLabel={`View ${title}`}
               >
-                <Text style={styles.viewButtonText}>
-                  VIEW
+                <Text style={styles.viewText}>
+                  VIEW PARTY
                 </Text>
 
                 <Text style={styles.viewArrow}>
@@ -337,31 +316,31 @@ export function PartyCard({
             </View>
 
             <Text
-              style={styles.expandedTitle}
+              style={styles.detailsTitle}
               numberOfLines={2}
             >
               {title}
             </Text>
 
             {host ? (
-              <Text style={styles.expandedHost}>
+              <Text style={styles.detailsHost}>
                 Hosted by {host}
               </Text>
             ) : null}
           </View>
 
-          {/* DETAILS */}
+          {/* INFORMATION */}
 
-          <View style={styles.detailsArea}>
-            <View style={styles.infoRow}>
+          <View style={styles.detailsInfo}>
+            <View style={styles.detailsColumns}>
               {location ? (
-                <View style={styles.infoBlock}>
-                  <Text style={styles.infoLabel}>
+                <View style={styles.detailColumn}>
+                  <Text style={styles.detailLabel}>
                     WHERE
                   </Text>
 
                   <Text
-                    style={styles.infoValue}
+                    style={styles.detailValue}
                     numberOfLines={1}
                   >
                     {location}
@@ -370,13 +349,13 @@ export function PartyCard({
               ) : null}
 
               {date || time ? (
-                <View style={styles.infoBlock}>
-                  <Text style={styles.infoLabel}>
+                <View style={styles.detailColumn}>
+                  <Text style={styles.detailLabel}>
                     WHEN
                   </Text>
 
                   <Text
-                    style={styles.infoValue}
+                    style={styles.detailValue}
                     numberOfLines={1}
                   >
                     {[date, time]
@@ -387,8 +366,6 @@ export function PartyCard({
               ) : null}
             </View>
 
-            {/* PEOPLE */}
-
             <View style={styles.peopleRow}>
               <AvatarStack
                 people={attendees}
@@ -396,45 +373,36 @@ export function PartyCard({
                 size="small"
               />
 
-              <View style={styles.peopleInfo}>
-                <Text style={styles.peopleCount}>
-                  {going > 0
-                    ? `${going} going`
-                    : 'No one going yet'}
+              <View style={styles.peopleCopy}>
+                <Text style={styles.peoplePrimary}>
+                  {going === 0
+                    ? 'Be the first to join'
+                    : `${going} going`}
                 </Text>
 
                 {capacity !== undefined ? (
                   <Text style={styles.peopleSecondary}>
                     {spotsLeft === 0
-                      ? 'Full'
+                      ? 'Party is full'
                       : `${spotsLeft} spots left`}
                   </Text>
                 ) : null}
               </View>
             </View>
-
-            {/* ACCESS */}
-
-            {access ? (
-              <View style={styles.accessPill}>
-                <Text style={styles.accessText}>
-                  {access}
-                </Text>
-              </View>
-            ) : null}
           </View>
         </View>
 
-        {/* QUICK JOIN */}
+        {/* JOIN */}
 
         <Animated.View
           style={[
-            styles.quickJoinPosition,
+            styles.joinPosition,
             {
               opacity: actionOpacity,
               transform: [
                 {
-                  translateY: actionTranslateY,
+                  translateY:
+                    actionTranslateY,
                 },
               ],
             },
@@ -452,7 +420,7 @@ export function PartyCard({
             accessibilityLabel={
               registered
                 ? `Joined ${title}`
-                : `Quick join ${title}`
+                : `Join ${title}`
             }
           >
             <Text style={styles.joinText}>
@@ -463,7 +431,7 @@ export function PartyCard({
       </Animated.View>
 
       {/* ======================================================
-          FRONT / CLOSED CARD
+          FRONT SURFACE
           ====================================================== */}
 
       <Animated.View
@@ -476,8 +444,10 @@ export function PartyCard({
             width: cardWidth,
             height,
 
+            opacity: frontOpacity,
+
             shadowOpacity:
-              frontShadowOpacity,
+              frontShadow,
 
             transform: [
               {
@@ -495,26 +465,14 @@ export function PartyCard({
           },
         ]}
       >
-        <Pressable
-          style={styles.frontPressArea}
-          onPress={handleFrontPress}
-          onPressIn={() => {
-            setPressed(true);
-            animatePress(1);
-          }}
-          onPressOut={() => {
-            setPressed(false);
-            animatePress(0);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={`${title} party`}
-          accessibilityHint="Expand party details"
-        >
+        <View style={styles.frontPressArea}>
           <Svg
             width={cardWidth}
             height={height}
             viewBox={`0 0 ${cardWidth} ${height}`}
-            style={StyleSheet.absoluteFill}
+            style={
+              StyleSheet.absoluteFill
+            }
           >
             <Path
               d={path}
@@ -529,14 +487,30 @@ export function PartyCard({
                 styles.frontContentPressed,
             ]}
           >
-            {/* TOP */}
+            {/* HEADER */}
 
             <View>
-              <Text style={styles.frontEyebrow}>
-                {host
-                  ? `HOSTED BY ${host.toUpperCase()}`
-                  : 'PARTY'}
-              </Text>
+              <View style={styles.frontPartyRow}>
+                <View style={styles.partyType}>
+                  <View style={styles.partyDot} />
+
+                  <Text
+                    style={
+                      styles.frontPartyText
+                    }
+                  >
+                    PARTY
+                  </Text>
+                </View>
+
+                <Text
+                  style={
+                    styles.tapHint
+                  }
+                >
+                  DETAILS →
+                </Text>
+              </View>
 
               <Text
                 style={styles.frontTitle}
@@ -544,32 +518,132 @@ export function PartyCard({
               >
                 {title}
               </Text>
+
+              {host ? (
+                <Text style={styles.frontHost}>
+                  Hosted by {host}
+                </Text>
+              ) : null}
             </View>
 
             {/* BOTTOM */}
 
-            <View style={styles.frontBottom}>
-              {location ? (
-                <Text
-                  style={styles.frontLocation}
-                  numberOfLines={1}
-                >
-                  {location}
-                </Text>
-              ) : null}
+            <View>
+              <View style={styles.frontMetaRow}>
+                {location ? (
+                  <View style={styles.frontMetaBlock}>
+                    <Text
+                      style={styles.metaLabel}
+                    >
+                      WHERE
+                    </Text>
 
-              {date || time ? (
+                    <Text
+                      style={styles.metaValue}
+                      numberOfLines={1}
+                    >
+                      {location}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {date || time ? (
+                  <View style={styles.frontMetaBlock}>
+                    <Text
+                      style={styles.metaLabel}
+                    >
+                      WHEN
+                    </Text>
+
+                    <Text
+                      style={styles.metaValue}
+                      numberOfLines={1}
+                    >
+                      {[date, time]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.frontPeopleRow}>
+                <AvatarStack
+                  people={attendees}
+                  max={5}
+                  size="small"
+                />
+
                 <Text
-                  style={styles.frontDate}
-                  numberOfLines={1}
+                  style={
+                    styles.frontPeopleText
+                  }
                 >
-                  {[date, time]
-                    .filter(Boolean)
-                    .join('  •  ')}
+                  {going === 0
+                    ? 'Be the first'
+                    : `${going} going`}
                 </Text>
-              ) : null}
+
+                {access ? (
+                  <View
+                    style={
+                      styles.accessPill
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.accessText
+                      }
+                    >
+                      {access}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
+        </View>
+
+        {/* Overlay so the whole card is tappable without nesting a <button> inside the join button */}
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={toggleParty}
+          onPressIn={() => {
+            setPressed(true);
+            animatePress(1);
+          }}
+          onPressOut={() => {
+            setPressed(false);
+            animatePress(0);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`${title} party`}
+          accessibilityHint="Tap to see more details"
+        />
+
+        {/* QUICK JOIN */}
+
+        <Pressable
+          onPress={(event) => {
+            event.stopPropagation?.();
+            onRegister?.();
+          }}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.frontJoinButton,
+            pressed &&
+              styles.frontJoinPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={
+            registered
+              ? `Joined ${title}`
+              : `Quick join ${title}`
+          }
+        >
+          <Text style={styles.frontJoinText}>
+            {registered ? 'JOINED' : 'JOIN'}
+          </Text>
         </Pressable>
       </Animated.View>
     </View>
@@ -583,12 +657,10 @@ const styles = StyleSheet.create({
   },
 
   /*
-   * ==========================================================
-   * EXPANDED CARD
-   * ==========================================================
+   * DETAILS
    */
 
-  expandedCard: {
+  detailsCard: {
     position: 'absolute',
 
     left: 0,
@@ -602,33 +674,31 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  expandedContent: {
+  detailsContent: {
     flex: 1,
 
     paddingTop: spacing.xl,
     paddingHorizontal: spacing.xl,
-    paddingBottom: 66,
+    paddingBottom: 62,
 
     justifyContent:
       'space-between',
   },
 
-  expandedHeader: {
-    minHeight: 22,
-
+  detailsTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
 
-  eyebrow: {
+  partyType: {
     flexDirection: 'row',
     alignItems: 'center',
 
-    gap: spacing.sm,
+    gap: 7,
   },
 
-  liveDot: {
+  partyDot: {
     width: 7,
     height: 7,
 
@@ -638,17 +708,18 @@ const styles = StyleSheet.create({
       colors.connection,
   },
 
-  eyebrowText: {
+  partyTypeText: {
     fontSize: 10,
+    lineHeight: 13,
+
     fontWeight: '800',
 
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
 
     color: colors.connection,
   },
 
   viewButton: {
-    minWidth: 62,
     height: 30,
 
     paddingHorizontal: 11,
@@ -657,27 +728,28 @@ const styles = StyleSheet.create({
 
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
 
     backgroundColor:
       colors.surfaceInteractive,
   },
 
   viewButtonPressed: {
+    opacity: 0.65,
+
     transform: [
       {
-        scale: 0.95,
+        scale: 0.96,
       },
     ],
-
-    opacity: 0.8,
   },
 
-  viewButtonText: {
+  viewText: {
     fontSize: 9,
+    lineHeight: 12,
+
     fontWeight: '800',
 
-    letterSpacing: 0.9,
+    letterSpacing: 0.7,
 
     color: colors.textPrimary,
   },
@@ -691,54 +763,59 @@ const styles = StyleSheet.create({
     color: colors.connection,
   },
 
-  expandedTitle: {
+  detailsTitle: {
     marginTop: spacing.md,
 
-    maxWidth: '85%',
+    maxWidth: '82%',
 
-    fontSize: 29,
-    lineHeight: 32,
+    fontSize: 27,
+    lineHeight: 31,
 
     fontWeight: '800',
 
-    letterSpacing: -0.9,
+    letterSpacing: -0.8,
 
     color: colors.textPrimary,
   },
 
-  expandedHost: {
-    marginTop: spacing.xs,
+  detailsHost: {
+    marginTop: 4,
 
     fontSize: 12,
+    lineHeight: 16,
 
     color: colors.textSecondary,
   },
 
-  detailsArea: {
-    gap: spacing.lg,
+  detailsInfo: {
+    gap: spacing.md,
   },
 
-  infoRow: {
+  detailsColumns: {
     flexDirection: 'row',
+
     gap: spacing.xl,
   },
 
-  infoBlock: {
+  detailColumn: {
     flex: 1,
+
     minWidth: 0,
   },
 
-  infoLabel: {
+  detailLabel: {
     fontSize: 9,
+    lineHeight: 12,
+
     fontWeight: '800',
 
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
 
     color: colors.textTertiary,
   },
 
-  infoValue: {
-    marginTop: 4,
+  detailValue: {
+    marginTop: 3,
 
     fontSize: 12,
     lineHeight: 16,
@@ -753,13 +830,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  peopleInfo: {
+  peopleCopy: {
     flex: 1,
 
     marginLeft: spacing.md,
   },
 
-  peopleCount: {
+  peoplePrimary: {
     fontSize: 13,
     lineHeight: 17,
 
@@ -777,51 +854,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  accessPill: {
-    alignSelf: 'flex-start',
-
-    minHeight: 28,
-
-    paddingHorizontal: 10,
-
-    borderRadius: radius.pill,
-
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    backgroundColor:
-      colors.surfaceInteractive,
-  },
-
-  accessText: {
-    fontSize: 10,
-    lineHeight: 13,
-
-    fontWeight: '700',
-
-    letterSpacing: 0.3,
-
-    color: colors.textSecondary,
-  },
-
-  /*
-   * ==========================================================
-   * QUICK JOIN
-   * ==========================================================
-   */
-
-  quickJoinPosition: {
+  joinPosition: {
     position: 'absolute',
 
     right: 18,
-    bottom: 16,
+    bottom: 15,
   },
 
   joinButton: {
-    minWidth: 82,
-    height: 44,
+    minWidth: 80,
+    height: 42,
 
-    paddingHorizontal: 19,
+    paddingHorizontal: 17,
 
     borderRadius: radius.pill,
 
@@ -837,7 +881,7 @@ const styles = StyleSheet.create({
       height: 5,
     },
     shadowRadius: 12,
-    shadowOpacity: 0.22,
+    shadowOpacity: 0.2,
 
     elevation: 4,
   },
@@ -859,15 +903,13 @@ const styles = StyleSheet.create({
 
     fontWeight: '800',
 
-    letterSpacing: 0.9,
+    letterSpacing: 0.8,
 
     color: colors.white,
   },
 
   /*
-   * ==========================================================
-   * FRONT CARD
-   * ==========================================================
+   * FRONT
    */
 
   frontLayer: {
@@ -898,7 +940,9 @@ const styles = StyleSheet.create({
     justifyContent:
       'space-between',
 
-    padding: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.lg,
   },
 
   frontContentPressed: {
@@ -909,22 +953,41 @@ const styles = StyleSheet.create({
     ],
   },
 
-  frontEyebrow: {
-    marginBottom: spacing.sm,
+  frontPartyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
 
+  frontPartyText: {
     fontSize: 10,
+    lineHeight: 13,
+
     fontWeight: '800',
 
     letterSpacing: 1.4,
+
+    color: colors.connection,
+  },
+
+  tapHint: {
+    fontSize: 9,
+    lineHeight: 12,
+
+    fontWeight: '700',
+
+    letterSpacing: 0.7,
 
     color: colors.textTertiary,
   },
 
   frontTitle: {
-    maxWidth: '84%',
+    marginTop: spacing.sm,
 
-    fontSize: 30,
-    lineHeight: 33,
+    maxWidth: '80%',
+
+    fontSize: 29,
+    lineHeight: 32,
 
     fontWeight: '800',
 
@@ -933,25 +996,143 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  frontBottom: {
-    paddingRight: 42,
-  },
-
-  frontLocation: {
-    fontSize: 14,
-    lineHeight: 18,
-
-    fontWeight: '600',
-
-    color: colors.textSecondary,
-  },
-
-  frontDate: {
-    marginTop: 5,
+  frontHost: {
+    marginTop: 3,
 
     fontSize: 12,
     lineHeight: 16,
 
+    color: colors.textSecondary,
+  },
+
+  frontMetaRow: {
+    flexDirection: 'row',
+
+    gap: spacing.xl,
+  },
+
+  frontMetaBlock: {
+    flex: 1,
+
+    minWidth: 0,
+  },
+
+  metaLabel: {
+    fontSize: 8,
+    lineHeight: 11,
+
+    fontWeight: '800',
+
+    letterSpacing: 1.1,
+
     color: colors.textTertiary,
+  },
+
+  metaValue: {
+    marginTop: 3,
+
+    fontSize: 12,
+    lineHeight: 16,
+
+    fontWeight: '600',
+
+    color: colors.textPrimary,
+  },
+
+  frontPeopleRow: {
+    marginTop: spacing.md,
+
+    paddingRight: 76,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  frontPeopleText: {
+    marginLeft: spacing.md,
+
+    fontSize: 12,
+    lineHeight: 16,
+
+    fontWeight: '700',
+
+    color: colors.textPrimary,
+  },
+
+  accessPill: {
+    marginLeft: 'auto',
+
+    minHeight: 26,
+
+    paddingHorizontal: 9,
+
+    borderRadius: radius.pill,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    backgroundColor:
+      colors.surfaceInteractive,
+  },
+
+  accessText: {
+    fontSize: 9,
+    lineHeight: 12,
+
+    fontWeight: '700',
+
+    color: colors.textSecondary,
+  },
+
+  frontJoinButton: {
+    position: 'absolute',
+
+    right: 16,
+    bottom: 15,
+
+    minWidth: 76,
+    height: 42,
+
+    paddingHorizontal: 16,
+
+    borderRadius: radius.pill,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    backgroundColor:
+      colors.brand,
+
+    shadowColor: colors.brand,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowRadius: 12,
+    shadowOpacity: 0.22,
+
+    elevation: 4,
+  },
+
+  frontJoinPressed: {
+    transform: [
+      {
+        scale: 0.95,
+      },
+    ],
+
+    backgroundColor:
+      colors.brandPressed,
+  },
+
+  frontJoinText: {
+    fontSize: 11,
+    lineHeight: 14,
+
+    fontWeight: '800',
+
+    letterSpacing: 0.8,
+
+    color: colors.white,
   },
 });

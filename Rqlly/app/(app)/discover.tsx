@@ -1,26 +1,50 @@
-import React, { useState } from 'react';
+import React, {
+  useState,
+} from 'react';
+
 import {
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import {
+  router,
+} from 'expo-router';
+
+import {
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 
 import {
   RqllyIconButton,
   RqllyText,
   colors,
+  radius,
   spacing,
 } from '../../components/ui';
 
-import { Avatar } from '../../components/people';
-import { PartyCard } from '../../components/PartyCard';
-import { RqllyScreen } from '../../components/motion/RqllyScreen';
-import { motion } from '../../components/motion/motion';
+import {
+  Avatar,
+} from '../../components/people';
 
-type DiscoveryTab = 'for-you' | 'friends' | 'nearby';
+import {
+  PartyCard,
+} from '../../components/PartyCard';
+
+import {
+  RqllyScreen,
+} from '../../components/motion/RqllyScreen';
+
+import {
+  motion,
+} from '../../components/motion/motion';
+
+type DiscoveryTab =
+  | 'for-you'
+  | 'friends'
+  | 'nearby';
 
 const tabs: {
   key: DiscoveryTab;
@@ -176,16 +200,26 @@ const parties: DemoParty[] = [
 ];
 
 export default function DiscoverScreen() {
-  const [activeTab, setActiveTab] =
-    useState<DiscoveryTab>('for-you');
+  const [
+    activeTab,
+    setActiveTab,
+  ] = useState<DiscoveryTab>(
+    'for-you',
+  );
 
-  const [joined, setJoined] =
-    useState<string[]>([]);
+  const [
+    joined,
+    setJoined,
+  ] = useState<string[]>([]);
 
-  const handleJoin = (partyId: string) => {
+  const handleJoin = (
+    partyId: string,
+  ) => {
     setJoined((current) =>
       current.includes(partyId)
-        ? current
+        ? current.filter(
+            (id) => id !== partyId,
+          )
         : [...current, partyId],
     );
   };
@@ -198,9 +232,13 @@ export default function DiscoverScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={
+            styles.content
+          }
         >
-          {/* HEADER */}
+          {/* ==================================================
+              HEADER
+              ================================================== */}
 
           <RqllyScreen>
             <View style={styles.header}>
@@ -215,20 +253,24 @@ export default function DiscoverScreen() {
                 <RqllyText
                   variant="small"
                   color="secondary"
-                  style={styles.headerSubtitle}
+                  style={styles.subtitle}
                 >
                   What's happening?
                 </RqllyText>
               </View>
 
-              <View style={styles.headerActions}>
+              <View
+                style={styles.headerActions}
+              >
                 <RqllyIconButton
                   variant="surface"
+                  size="medium"
                   accessibilityLabel="Search"
                   icon={
                     <RqllyText
                       variant="bodyMedium"
                       color="primary"
+                      style={styles.searchIcon}
                     >
                       ⌕
                     </RqllyText>
@@ -240,14 +282,18 @@ export default function DiscoverScreen() {
                   size="medium"
                   presence="online"
                   onPress={() =>
-                    router.push('/profile')
+                    router.push(
+                      '/profile',
+                    )
                   }
                 />
               </View>
             </View>
           </RqllyScreen>
 
-          {/* DISCOVERY TABS */}
+          {/* ==================================================
+              DISCOVERY TABS
+              ================================================== */}
 
           <RqllyScreen
             delay={motion.delay.first}
@@ -261,9 +307,19 @@ export default function DiscoverScreen() {
                   <Pressable
                     key={tab.key}
                     onPress={() =>
-                      setActiveTab(tab.key)
+                      setActiveTab(
+                        tab.key,
+                      )
                     }
-                    style={styles.tab}
+                    style={({ pressed }) => [
+                      styles.tab,
+                      pressed &&
+                        styles.tabPressed,
+                    ]}
+                    accessibilityRole="tab"
+                    accessibilityState={{
+                      selected: active,
+                    }}
                   >
                     <RqllyText
                       variant="small"
@@ -281,114 +337,164 @@ export default function DiscoverScreen() {
                       {tab.label}
                     </RqllyText>
 
-                    {active && (
-                      <View
-                        style={styles.tabIndicator}
-                      />
-                    )}
+                    <View
+                      style={[
+                        styles.tabIndicator,
+                        {
+                          opacity:
+                            active
+                              ? 1
+                              : 0,
+                        },
+                      ]}
+                    />
                   </Pressable>
                 );
               })}
             </View>
           </RqllyScreen>
 
-          {/* INTRO */}
+          {/* ==================================================
+              SECTION HEADING
+              ================================================== */}
 
           <RqllyScreen
             delay={motion.delay.second}
           >
-            <View style={styles.sectionHeader}>
-              <View>
-                <RqllyText variant="heading">
-                  {activeTab === 'for-you'
-                    ? 'Happening now'
-                    : activeTab === 'friends'
+            <View
+              style={
+                styles.sectionHeader
+              }
+            >
+              <View
+                style={
+                  styles.sectionHeading
+                }
+              >
+                <RqllyText
+                  variant="heading"
+                  style={styles.sectionTitle}
+                >
+                  {activeTab ===
+                  'for-you'
+                    ? 'Plans for you'
+                    : activeTab ===
+                        'friends'
                       ? 'Your people'
-                      : 'Around you'}
+                      : 'Nearby'}
                 </RqllyText>
 
                 <RqllyText
                   variant="small"
                   color="secondary"
-                  style={styles.sectionSubtitle}
                 >
-                  {activeTab === 'for-you'
-                    ? 'Plans you might want to join.'
-                    : activeTab === 'friends'
+                  {activeTab ===
+                  'for-you'
+                    ? 'Things you might want to join.'
+                    : activeTab ===
+                        'friends'
                       ? 'See what your friends are doing.'
-                      : 'Things happening nearby.'}
+                      : 'Things happening around you.'}
                 </RqllyText>
               </View>
-
-              <RqllyText
-                variant="caption"
-                color="connection"
-              >
-                LIVE
-              </RqllyText>
             </View>
           </RqllyScreen>
 
-          {/* PARTY FEED */}
+          {/* ==================================================
+              PARTY FEED
+              ================================================== */}
 
           <View style={styles.partyList}>
-            {parties.map((party, index) => (
-              <RqllyScreen
-                key={party.id}
-                delay={
-                  motion.delay.third +
-                  index * 70
-                }
-              >
-                <PartyCard
-                    title={party.title}
-                    host={party.host}
-                    location={party.location}
-                    date={party.date}
-                    time={party.time}
-                    attendees={party.attendees}
-                    going={
+            {parties.map(
+              (party, index) => {
+                const isJoined =
+                  joined.includes(
+                    party.id,
+                  );
+
+                return (
+                  <RqllyScreen
+                    key={party.id}
+                    delay={
+                      motion.delay.third +
+                      index * 70
+                    }
+                  >
+                    <PartyCard
+                      title={
+                        party.title
+                      }
+                      host={
+                        party.host
+                      }
+                      location={
+                        party.location
+                      }
+                      date={
+                        party.date
+                      }
+                      time={
+                        party.time
+                      }
+                      attendees={
+                        party.attendees
+                      }
+                      going={
                         party.going +
-                        (joined.includes(party.id)
-                        ? 1
-                        : 0)
-                    }
-                    capacity={party.capacity}
-                    access={party.access}
-                    registered={joined.includes(
-                        party.id,
-                    )}
-                    onRegister={() =>
-                        handleJoin(party.id)
-                    }
-                    onOpen={() =>
+                        (isJoined
+                          ? 1
+                          : 0)
+                      }
+                      capacity={
+                        party.capacity
+                      }
+                      access={
+                        party.access
+                      }
+                      registered={
+                        isJoined
+                      }
+                      onRegister={() =>
+                        handleJoin(
+                          party.id,
+                        )
+                      }
+                      onOpen={() =>
                         router.push({
-                        pathname:
+                          pathname:
                             '/(app)/party/[id]',
-                        params: {
+                          params: {
                             id: party.id,
-                        },
+                          },
                         })
-                    }
+                      }
                     />
-              </RqllyScreen>
-            ))}
+                  </RqllyScreen>
+                );
+              },
+            )}
           </View>
 
-          {/* DISCOVERY FOOTER */}
+          {/* ==================================================
+              FOOTER
+              ================================================== */}
 
           <RqllyScreen
             delay={motion.delay.sixth}
           >
-            <View style={styles.footer}>
-              <View style={styles.footerLine} />
+            <View
+              style={styles.footer}
+            >
+              <View
+                style={styles.footerLine}
+              />
 
               <RqllyText
                 variant="caption"
                 color="tertiary"
                 align="center"
               >
-                MORE IS HAPPENING
+                THAT'S ALL FOR NOW
               </RqllyText>
 
               <RqllyText
@@ -397,7 +503,7 @@ export default function DiscoverScreen() {
                 align="center"
                 style={styles.footerText}
               >
-                Keep exploring.
+                Check back later for more.
               </RqllyText>
             </View>
           </RqllyScreen>
@@ -410,7 +516,9 @@ export default function DiscoverScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.canvas,
+
+    backgroundColor:
+      colors.canvas,
   },
 
   safeArea: {
@@ -418,53 +526,78 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingHorizontal:
+      spacing.lg,
 
-    paddingBottom: 130,
+    paddingTop:
+      spacing.sm,
+
+    paddingBottom: 132,
   },
 
   header: {
-    minHeight: 68,
+    minHeight: 66,
 
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent:
+      'space-between',
   },
 
   logo: {
-    fontSize: 32,
-    lineHeight: 38,
-    letterSpacing: -1.4,
+    fontSize: 31,
+    lineHeight: 36,
+
+    fontWeight: '700',
+
+    letterSpacing: -1.35,
   },
 
-  headerSubtitle: {
+  subtitle: {
     marginTop: 1,
   },
 
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+
     gap: spacing.sm,
   },
 
-  tabs: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchIcon: {
+    fontSize: 19,
+    lineHeight: 22,
+  },
 
-    marginTop: spacing.xl,
-    marginBottom: spacing.xl,
+  tabs: {
+    height: 48,
+
+    marginTop:
+      spacing.lg,
+
+    flexDirection: 'row',
+    alignItems: 'stretch',
 
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor:
+      colors.border,
   },
 
   tab: {
     position: 'relative',
 
-    marginRight: spacing.xl,
+    minWidth: 72,
 
-    paddingBottom: spacing.md,
+    marginRight:
+      spacing.xl,
+
+    alignItems: 'flex-start',
+    justifyContent:
+      'center',
+  },
+
+  tabPressed: {
+    opacity: 0.65,
   },
 
   tabText: {
@@ -484,21 +617,28 @@ const styles = StyleSheet.create({
 
     height: 2,
 
-    borderRadius: 999,
+    borderRadius:
+      radius.pill,
 
-    backgroundColor: colors.brand,
+    backgroundColor:
+      colors.brand,
   },
 
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    paddingTop:
+      spacing.xl,
 
-    marginBottom: spacing.lg,
+    paddingBottom:
+      spacing.lg,
   },
 
-  sectionSubtitle: {
-    marginTop: 3,
+  sectionHeading: {
+    gap: 2,
+  },
+
+  sectionTitle: {
+    fontSize: 22,
+    lineHeight: 28,
   },
 
   partyList: {
@@ -508,20 +648,26 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
 
-    paddingTop: spacing.xxxl,
-    paddingBottom: spacing.xl,
+    paddingTop:
+      spacing.xxxl,
+
+    paddingBottom:
+      spacing.xl,
   },
 
   footerLine: {
-    width: 42,
+    width: 38,
     height: 1,
 
-    marginBottom: spacing.md,
+    marginBottom:
+      spacing.md,
 
-    backgroundColor: colors.borderStrong,
+    backgroundColor:
+      colors.borderStrong,
   },
 
   footerText: {
-    marginTop: spacing.xs,
+    marginTop:
+      spacing.xs,
   },
 });

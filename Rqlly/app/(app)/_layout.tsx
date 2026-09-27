@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   Pressable,
   StyleSheet,
@@ -35,7 +36,10 @@ type NavRoute =
 type NavItem = {
   route: NavRoute;
   label: string;
-  icon: 'discover' | 'messages' | 'profile';
+  icon:
+    | 'discover'
+    | 'messages'
+    | 'profile';
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -57,11 +61,14 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function AppLayout() {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
 
   const isCreate =
     pathname === '/create' ||
-    pathname.startsWith('/create/');
+    pathname.startsWith(
+      '/create/',
+    );
 
   const isActive = (
     route: NavRoute,
@@ -86,19 +93,37 @@ export default function AppLayout() {
           animationDuration: 220,
         }}
       >
-        <Stack.Screen name="discover" />
-        <Stack.Screen name="create" />
-        <Stack.Screen name="messages" />
-        <Stack.Screen name="profile" />
-        <Stack.Screen name="party/[id]" />
+        <Stack.Screen
+          name="discover"
+        />
+
+        <Stack.Screen
+          name="create"
+        />
+
+        <Stack.Screen
+          name="messages"
+        />
+
+        <Stack.Screen
+          name="profile"
+        />
+
+        <Stack.Screen
+          name="party/[id]"
+        />
       </Stack>
 
       <SafeAreaView
         edges={['bottom']}
-        style={styles.safeArea}
+        style={
+          styles.safeArea
+        }
       >
         <View
-          style={styles.navigation}
+          style={
+            styles.navigation
+          }
         >
           <NavigationItem
             item={NAV_ITEMS[0]}
@@ -112,50 +137,14 @@ export default function AppLayout() {
             }
           />
 
-          <View
-            style={styles.createArea}
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Create a party"
-              onPress={() =>
-                router.push(
-                  '/create',
-                )
-              }
-              style={({ pressed }) => [
-                styles.createButton,
-                pressed &&
-                  styles.createButtonPressed,
-              ]}
-            >
-              <RqllyText
-                variant="display"
-                color="primary"
-                align="center"
-                style={
-                  styles.createIcon
-                }
-              >
-                +
-              </RqllyText>
-            </Pressable>
-
-            <RqllyText
-              variant="caption"
-              color={
-                isCreate
-                  ? 'brand'
-                  : 'tertiary'
-              }
-              align="center"
-              style={
-                styles.createLabel
-              }
-            >
-              Create
-            </RqllyText>
-          </View>
+          <CreateNavigationItem
+            active={isCreate}
+            onPress={() =>
+              router.push(
+                '/create',
+              )
+            }
+          />
 
           <NavigationItem
             item={NAV_ITEMS[1]}
@@ -207,8 +196,7 @@ function NavigationItem({
       onPress={onPress}
       style={({ pressed }) => [
         styles.navigationItem,
-        pressed &&
-          styles.navigationItemPressed,
+        pressed && styles.navigationPressed,
       ]}
     >
       <View
@@ -242,6 +230,79 @@ function NavigationItem({
   );
 }
 
+function CreateNavigationItem({
+  active,
+  onPress,
+}: {
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Create a party"
+      accessibilityState={{
+        selected: active,
+      }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.navigationItem,
+        pressed &&
+          styles.navigationPressed,
+      ]}
+    >
+      <View
+        style={
+          styles.createSlot
+        }
+      >
+        <View
+          style={styles.createButton}
+        >
+          <TextPlus />
+        </View>
+      </View>
+
+      <RqllyText
+        variant="caption"
+        color={
+          active
+            ? 'brand'
+            : 'tertiary'
+        }
+        align="center"
+        style={
+          styles.navigationLabel
+        }
+      >
+        Create
+      </RqllyText>
+    </Pressable>
+  );
+}
+
+function TextPlus() {
+  return (
+    <View
+      style={
+        styles.plusContainer
+      }
+    >
+      <View
+        style={
+          styles.plusHorizontal
+        }
+      />
+
+      <View
+        style={
+          styles.plusVertical
+        }
+      />
+    </View>
+  );
+}
+
 function NavIcon({
   type,
   active,
@@ -249,9 +310,10 @@ function NavIcon({
   type: NavItem['icon'];
   active: boolean;
 }) {
-  const color = active
-    ? colors.white
-    : colors.textTertiary;
+  const stroke =
+    active
+      ? colors.textPrimary
+      : colors.textTertiary;
 
   if (type === 'discover') {
     return (
@@ -263,7 +325,7 @@ function NavIcon({
       >
         <Path
           d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5Z"
-          stroke={color}
+          stroke={stroke}
           strokeWidth={1.8}
           strokeLinejoin="round"
         />
@@ -281,7 +343,7 @@ function NavIcon({
       >
         <Path
           d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.3-.7L4 20l1.6-3.9A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"
-          stroke={color}
+          stroke={stroke}
           strokeWidth={1.8}
           strokeLinejoin="round"
         />
@@ -300,13 +362,13 @@ function NavIcon({
         cx="12"
         cy="8"
         r="3.5"
-        stroke={color}
+        stroke={stroke}
         strokeWidth={1.8}
       />
 
       <Path
         d="M5.5 20c.7-3.2 2.8-5 6.5-5s5.8 1.8 6.5 5"
-        stroke={color}
+        stroke={stroke}
         strokeWidth={1.8}
         strokeLinecap="round"
       />
@@ -317,6 +379,7 @@ function NavIcon({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+
     backgroundColor:
       colors.canvas,
   },
@@ -330,14 +393,13 @@ const styles = StyleSheet.create({
   },
 
   navigation: {
-    height: 76,
+    height: 78,
 
-    paddingHorizontal: 18,
+    paddingHorizontal:
+      spacing.sm,
 
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent:
-      'space-between',
 
     backgroundColor:
       colors.surface,
@@ -348,30 +410,31 @@ const styles = StyleSheet.create({
   },
 
   navigationItem: {
-    width: 72,
+    flex: 1,
 
-    height: 70,
+    height: 78,
 
     alignItems: 'center',
     justifyContent:
       'flex-start',
 
-    paddingTop: 10,
+    paddingTop: 9,
   },
 
-  navigationItemPressed: {
+  navigationPressed: {
     opacity: 0.65,
   },
 
   iconContainer: {
-    width: 30,
+    width: 34,
     height: 30,
 
     alignItems: 'center',
     justifyContent:
       'center',
 
-    borderRadius: radius.pill,
+    borderRadius:
+      radius.pill,
   },
 
   iconContainerActive: {
@@ -385,22 +448,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 13,
 
-    letterSpacing: 0.3,
+    letterSpacing: 0.15,
   },
 
-  createArea: {
-    width: 76,
+  createSlot: {
+    width: 64,
+    height: 30,
 
     alignItems: 'center',
-
-    marginTop: -26,
+    justifyContent:
+      'flex-start',
   },
 
   createButton: {
     width: 58,
     height: 58,
 
-    borderRadius: radius.pill,
+    marginTop: -23,
+
+    borderRadius:
+      radius.pill,
 
     alignItems: 'center',
     justifyContent:
@@ -412,23 +479,67 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor:
       colors.canvas,
+
+    shadowColor:
+      colors.black,
+
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    shadowRadius: 8,
+    shadowOpacity: 0.3,
+
+    elevation: 7,
+  },
+
+  createButtonActive: {
+    transform: [
+      {
+        scale: 1.02,
+      },
+    ],
   },
 
   createButtonPressed: {
     transform: [
       {
-        scale: 0.94,
+        scale: 0.93,
       },
     ],
   },
 
-  createIcon: {
-    fontSize: 34,
-    lineHeight: 38,
-    fontWeight: '500',
+  plusContainer: {
+    width: 22,
+    height: 22,
+
+    alignItems: 'center',
+    justifyContent:
+      'center',
   },
 
-  createLabel: {
-    marginTop: 4,
+  plusHorizontal: {
+    position: 'absolute',
+
+    width: 18,
+    height: 2,
+
+    borderRadius: 2,
+
+    backgroundColor:
+      colors.white,
+  },
+
+  plusVertical: {
+    position: 'absolute',
+
+    width: 2,
+    height: 18,
+
+    borderRadius: 2,
+
+    backgroundColor:
+      colors.white,
   },
 });
