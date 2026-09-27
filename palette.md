@@ -225,3 +225,37 @@ Interactive surface
                     Effects   Audio    Fonts
                        │
                   Stickers / AR
+
+
+                     ┌──────────────┐
+                     │    RQLLY     │
+                     │   WELCOME    │
+                     └──────┬───────┘
+                            │
+                 ┌──────────┴──────────┐
+                 ↓                     ↓
+             GET STARTED            SIGN IN
+                 │                     │
+                 ↓                     ↓
+             SIGN UP                SIGN IN
+                 │                     │
+                 ↓                     ↓
+             VERIFY                 LOADING
+                 │                     │
+                 └──────────┬──────────┘
+                            ↓
+                       ONBOARDING
+
+SIGN IN
+   │
+   └── Forgot password
+           │
+           ↓
+      Reset password
+           │
+           ↓
+        Sign in
+
+# Tagline:
+
+`Meet up. Make plans. See what's happening.`
