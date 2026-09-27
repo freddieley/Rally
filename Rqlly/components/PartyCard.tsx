@@ -369,12 +369,21 @@ export function PartyCard({
           ]}
         >
           <Pressable
-            onPress={onRegister}
+            onPress={(event) => {
+              event.stopPropagation?.();
+              onRegister?.();
+            }}
             hitSlop={10}
             style={({ pressed: buttonPressed }) => [
               styles.registerButton,
               buttonPressed && styles.registerButtonPressed,
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              registered
+                ? `Leave ${title}`
+                : `Join ${title}`
+            }
           >
             <Text style={styles.registerText}>
               {registered ? 'JOINED' : 'JOIN'}
