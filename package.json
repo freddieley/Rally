@@ -9,6 +9,7 @@
     "test": "node run dev"
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "react": "^19.3.0",
     "react-native": "^0.84.1"
   }
