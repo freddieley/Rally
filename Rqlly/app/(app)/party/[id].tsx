@@ -201,7 +201,11 @@ export default function PartyPage() {
             <RqllyIconButton
               variant="surface"
               accessibilityLabel="Go back"
-              onPress={() => router.back()}
+              onPress={() =>
+                router.canGoBack()
+                  ? router.back()
+                  : router.replace('/discover')
+              }
               icon={
                 <RqllyText
                   variant="heading"

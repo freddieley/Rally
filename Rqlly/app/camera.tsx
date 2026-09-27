@@ -178,7 +178,11 @@ export default function CameraScreen() {
         <View style={styles.topArea}>
           <CameraTopBar
             flash={flash}
-            onClose={() => router.back()}
+            onClose={() =>
+              router.canGoBack()
+                ? router.back()
+                : router.replace('/discover')
+            }
             onFlashPress={cycleFlash}
           />
         </View>
