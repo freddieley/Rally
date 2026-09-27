@@ -4,38 +4,55 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Stack, router, usePathname } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import {
+  Stack,
+  router,
+  usePathname,
+} from 'expo-router';
+
+import {
+  SafeAreaView,
+} from 'react-native-safe-area-context';
+
+import Svg, {
+  Circle,
+  Path,
+} from 'react-native-svg';
 
 import {
   RqllyText,
   colors,
   radius,
-  sizes,
   spacing,
 } from '../../components/ui';
 
+type NavRoute =
+  | '/discover'
+  | '/messages'
+  | '/profile';
+
 type NavItem = {
-  route: '/discover' | '/messages' | '/profile';
+  route: NavRoute;
   label: string;
-  icon: string;
+  icon: 'discover' | 'messages' | 'profile';
 };
 
 const NAV_ITEMS: NavItem[] = [
   {
     route: '/discover',
     label: 'Discover',
-    icon: '⌂',
+    icon: 'discover',
   },
   {
     route: '/messages',
     label: 'Messages',
-    icon: '○',
+    icon: 'messages',
   },
   {
     route: '/profile',
     label: 'Profile',
-    icon: '◉',
+    icon: 'profile',
   },
 ];
 
@@ -46,18 +63,25 @@ export default function AppLayout() {
     pathname === '/create' ||
     pathname.startsWith('/create/');
 
-  const isActive = (route: NavItem['route']) =>
+  const isActive = (
+    route: NavRoute,
+  ) =>
     pathname === route ||
-    pathname.startsWith(`${route}/`);
+    pathname.startsWith(
+      `${route}/`,
+    );
 
   return (
     <View style={styles.root}>
       <Stack
         screenOptions={{
           headerShown: false,
+
           contentStyle: {
-            backgroundColor: colors.canvas,
+            backgroundColor:
+              colors.canvas,
           },
+
           animation: 'fade',
           animationDuration: 220,
         }}
@@ -71,34 +95,47 @@ export default function AppLayout() {
 
       <SafeAreaView
         edges={['bottom']}
-        style={styles.navigationSafeArea}
+        style={styles.safeArea}
       >
-        <View style={styles.navigation}>
-          <View style={styles.navigationSide}>
-            <NavigationItem
-              item={NAV_ITEMS[0]}
-              active={isActive(NAV_ITEMS[0].route)}
-              onPress={() =>
-                router.replace('/discover')
-              }
-            />
-          </View>
+        <View
+          style={styles.navigation}
+        >
+          <NavigationItem
+            item={NAV_ITEMS[0]}
+            active={isActive(
+              NAV_ITEMS[0].route,
+            )}
+            onPress={() =>
+              router.replace(
+                '/discover',
+              )
+            }
+          />
 
-          <View style={styles.navigationCenter}>
+          <View
+            style={styles.createArea}
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Create a party"
-              onPress={() => router.push('/create')}
+              onPress={() =>
+                router.push(
+                  '/create',
+                )
+              }
               style={({ pressed }) => [
                 styles.createButton,
-                pressed && styles.createButtonPressed,
+                pressed &&
+                  styles.createButtonPressed,
               ]}
             >
               <RqllyText
                 variant="display"
                 color="primary"
                 align="center"
-                style={styles.createIcon}
+                style={
+                  styles.createIcon
+                }
               >
                 +
               </RqllyText>
@@ -112,29 +149,37 @@ export default function AppLayout() {
                   : 'tertiary'
               }
               align="center"
-              style={styles.createLabel}
+              style={
+                styles.createLabel
+              }
             >
               Create
             </RqllyText>
           </View>
 
-          <View style={styles.navigationSide}>
-            <NavigationItem
-              item={NAV_ITEMS[1]}
-              active={isActive(NAV_ITEMS[1].route)}
-              onPress={() =>
-                router.replace('/messages')
-              }
-            />
+          <NavigationItem
+            item={NAV_ITEMS[1]}
+            active={isActive(
+              NAV_ITEMS[1].route,
+            )}
+            onPress={() =>
+              router.replace(
+                '/messages',
+              )
+            }
+          />
 
-            <NavigationItem
-              item={NAV_ITEMS[2]}
-              active={isActive(NAV_ITEMS[2].route)}
-              onPress={() =>
-                router.replace('/profile')
-              }
-            />
-          </View>
+          <NavigationItem
+            item={NAV_ITEMS[2]}
+            active={isActive(
+              NAV_ITEMS[2].route,
+            )}
+            onPress={() =>
+              router.replace(
+                '/profile',
+              )
+            }
+          />
         </View>
       </SafeAreaView>
     </View>
@@ -153,29 +198,43 @@ function NavigationItem({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={item.label}
+      accessibilityLabel={
+        item.label
+      }
       accessibilityState={{
         selected: active,
       }}
       onPress={onPress}
       style={({ pressed }) => [
         styles.navigationItem,
-        pressed && styles.navigationItemPressed,
+        pressed &&
+          styles.navigationItemPressed,
       ]}
     >
-      <RqllyText
-        variant="heading"
-        color={active ? 'primary' : 'tertiary'}
-        align="center"
-        style={styles.navigationIcon}
+      <View
+        style={[
+          styles.iconContainer,
+          active &&
+            styles.iconContainerActive,
+        ]}
       >
-        {item.icon}
-      </RqllyText>
+        <NavIcon
+          type={item.icon}
+          active={active}
+        />
+      </View>
 
       <RqllyText
         variant="caption"
-        color={active ? 'primary' : 'tertiary'}
+        color={
+          active
+            ? 'primary'
+            : 'tertiary'
+        }
         align="center"
+        style={
+          styles.navigationLabel
+        }
       >
         {item.label}
       </RqllyText>
@@ -183,63 +242,158 @@ function NavigationItem({
   );
 }
 
+function NavIcon({
+  type,
+  active,
+}: {
+  type: NavItem['icon'];
+  active: boolean;
+}) {
+  const color = active
+    ? colors.white
+    : colors.textTertiary;
+
+  if (type === 'discover') {
+    return (
+      <Svg
+        width={22}
+        height={22}
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <Path
+          d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5Z"
+          stroke={color}
+          strokeWidth={1.8}
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+
+  if (type === 'messages') {
+    return (
+      <Svg
+        width={22}
+        height={22}
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <Path
+          d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.3-.7L4 20l1.6-3.9A7.2 7.2 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"
+          stroke={color}
+          strokeWidth={1.8}
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg
+      width={22}
+      height={22}
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <Circle
+        cx="12"
+        cy="8"
+        r="3.5"
+        stroke={color}
+        strokeWidth={1.8}
+      />
+
+      <Path
+        d="M5.5 20c.7-3.2 2.8-5 6.5-5s5.8 1.8 6.5 5"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.canvas,
+    backgroundColor:
+      colors.canvas,
   },
 
-  navigationSafeArea: {
+  safeArea: {
     position: 'absolute',
+
     left: 0,
     right: 0,
     bottom: 0,
   },
 
   navigation: {
-    minHeight: sizes.tabBar + spacing.lg,
+    height: 76,
 
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingHorizontal: 18,
 
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    justifyContent:
+      'space-between',
 
-    backgroundColor: colors.surface,
+    backgroundColor:
+      colors.surface,
 
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-
-  navigationSide: {
-    flex: 1,
-
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-
-  navigationCenter: {
-    width: 76,
-    alignItems: 'center',
-
-    marginTop: -22,
+    borderTopColor:
+      colors.border,
   },
 
   navigationItem: {
-    minWidth: 64,
-    minHeight: 52,
+    width: 72,
+
+    height: 70,
 
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent:
+      'flex-start',
+
+    paddingTop: 10,
   },
 
   navigationItemPressed: {
     opacity: 0.65,
   },
 
-  navigationIcon: {
-    marginBottom: 2,
+  iconContainer: {
+    width: 30,
+    height: 30,
+
+    alignItems: 'center',
+    justifyContent:
+      'center',
+
+    borderRadius: radius.pill,
+  },
+
+  iconContainerActive: {
+    backgroundColor:
+      colors.surfaceInteractive,
+  },
+
+  navigationLabel: {
+    marginTop: 4,
+
+    fontSize: 10,
+    lineHeight: 13,
+
+    letterSpacing: 0.3,
+  },
+
+  createArea: {
+    width: 76,
+
+    alignItems: 'center',
+
+    marginTop: -26,
   },
 
   createButton: {
@@ -249,12 +403,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
 
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent:
+      'center',
 
-    backgroundColor: colors.brand,
+    backgroundColor:
+      colors.brand,
 
-    borderWidth: 3,
-    borderColor: colors.canvas,
+    borderWidth: 4,
+    borderColor:
+      colors.canvas,
   },
 
   createButtonPressed: {
@@ -266,12 +423,12 @@ const styles = StyleSheet.create({
   },
 
   createIcon: {
-    fontSize: 32,
-    lineHeight: 36,
+    fontSize: 34,
+    lineHeight: 38,
     fontWeight: '500',
   },
 
   createLabel: {
-    marginTop: 3,
+    marginTop: 4,
   },
 });

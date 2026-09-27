@@ -15,6 +15,10 @@ import {
 import { AuthBackground } from '../components/auth/AuthBackground';
 
 export default function OnboardingScreen() {
+  const enterApp = () => {
+    router.replace('/(app)/discover');
+  };
+
   return (
     <AuthBackground variant="welcome">
       <SafeAreaView
@@ -47,9 +51,7 @@ export default function OnboardingScreen() {
               size="large"
               fullWidth
               style={styles.button}
-              onPress={() =>
-                router.replace('/')
-              }
+              onPress={enterApp}
             >
               Continue
             </RqllyButton>
@@ -58,9 +60,7 @@ export default function OnboardingScreen() {
               variant="small"
               color="tertiary"
               align="center"
-              onPress={() =>
-                router.replace('/')
-              }
+              onPress={enterApp}
             >
               Skip for now
             </RqllyText>

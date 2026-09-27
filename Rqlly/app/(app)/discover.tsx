@@ -47,6 +47,18 @@ type DemoParty = {
   location: string;
   date: string;
   time: string;
+  going: number;
+  capacity: number;
+  access: string;
+  attendees: {
+    id: string;
+    name: string;
+    presence?:
+      | 'online'
+      | 'going'
+      | 'busy'
+      | 'offline';
+  }[];
 };
 
 const parties: DemoParty[] = [
@@ -57,7 +69,43 @@ const parties: DemoParty[] = [
     location: 'Southampton',
     date: 'Friday 27 Sept',
     time: '10:30 PM',
+    going: 24,
+    capacity: 50,
+    access: 'Invite only',
+    attendees: [
+      {
+        id: 'freddie',
+        name: 'Freddie',
+        presence: 'online',
+      },
+      {
+        id: 'alex',
+        name: 'Alex',
+        presence: 'going',
+      },
+      {
+        id: 'charlie',
+        name: 'Charlie',
+        presence: 'online',
+      },
+      {
+        id: 'sam',
+        name: 'Sam',
+        presence: 'offline',
+      },
+      {
+        id: 'jordan',
+        name: 'Jordan',
+        presence: 'online',
+      },
+      {
+        id: 'olivia',
+        name: 'Olivia',
+        presence: 'going',
+      },
+    ],
   },
+
   {
     id: 'rooftop',
     title: 'Rooftop Session',
@@ -65,7 +113,33 @@ const parties: DemoParty[] = [
     location: 'Southampton',
     date: 'Saturday 28 Sept',
     time: '8:00 PM',
+    going: 18,
+    capacity: 30,
+    access: 'Friends',
+    attendees: [
+      {
+        id: 'alex',
+        name: 'Alex',
+        presence: 'online',
+      },
+      {
+        id: 'freddie',
+        name: 'Freddie',
+        presence: 'going',
+      },
+      {
+        id: 'mia',
+        name: 'Mia',
+        presence: 'online',
+      },
+      {
+        id: 'sam',
+        name: 'Sam',
+        presence: 'offline',
+      },
+    ],
   },
+
   {
     id: 'late-night',
     title: 'Late Night',
@@ -73,6 +147,31 @@ const parties: DemoParty[] = [
     location: 'Winchester',
     date: 'Saturday 28 Sept',
     time: '11:00 PM',
+    going: 42,
+    capacity: 80,
+    access: 'Public',
+    attendees: [
+      {
+        id: 'charlie',
+        name: 'Charlie',
+        presence: 'online',
+      },
+      {
+        id: 'freddie',
+        name: 'Freddie',
+        presence: 'going',
+      },
+      {
+        id: 'alex',
+        name: 'Alex',
+        presence: 'online',
+      },
+      {
+        id: 'olivia',
+        name: 'Olivia',
+        presence: 'going',
+      },
+    ],
   },
 ];
 
@@ -242,24 +341,36 @@ export default function DiscoverScreen() {
                 }
               >
                 <PartyCard
-                  title={party.title}
-                  host={party.host}
-                  location={party.location}
-                  date={party.date}
-                  time={party.time}
-                  registered={joined.includes(
-                    party.id,
-                  )}
-                  onRegister={() =>
-                    handleJoin(party.id)
-                  }
-                  onOpen={() =>
-                    router.push({
-                      pathname: "/(app)/party/[id]",
-                      params: { id: party.id },
-                    })
-                  }
-                />
+                    title={party.title}
+                    host={party.host}
+                    location={party.location}
+                    date={party.date}
+                    time={party.time}
+                    attendees={party.attendees}
+                    going={
+                        party.going +
+                        (joined.includes(party.id)
+                        ? 1
+                        : 0)
+                    }
+                    capacity={party.capacity}
+                    access={party.access}
+                    registered={joined.includes(
+                        party.id,
+                    )}
+                    onRegister={() =>
+                        handleJoin(party.id)
+                    }
+                    onOpen={() =>
+                        router.push({
+                        pathname:
+                            '/(app)/party/[id]',
+                        params: {
+                            id: party.id,
+                        },
+                        })
+                    }
+                    />
               </RqllyScreen>
             ))}
           </View>

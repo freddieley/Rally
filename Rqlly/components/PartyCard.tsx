@@ -10,12 +10,26 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { AvatarStack } from './people/AvatarStack';
+
+export type PartyCardPerson = {
+  id: string;
+  name: string;
+  uri?: string;
+  presence?: 'online' | 'going' | 'busy' | 'offline';
+};
+
 export type PartyCardProps = {
   title: string;
   host?: string;
   location?: string;
   date?: string;
   time?: string;
+
+  attendees?: PartyCardPerson[];
+  going?: number;
+  capacity?: number;
+  access?: string;
 
   width?: number;
   height?: number;
@@ -31,16 +45,18 @@ const COLORS = {
 
   front: '#141318',
   page: '#1C1A21',
+  interactive: '#24212A',
 
   white: '#F5F5F5',
   secondary: '#A7A5AA',
   tertiary: '#6F6D74',
+  border: '#2B2832',
 
   magenta: '#E41BCD',
   cyan: '#1BCDE4',
 };
 
-const DEFAULT_HEIGHT = 220;
+const DEFAULT_HEIGHT = 250;
 
 const RADIUS = 30;
 const DIAGONAL = 52;
@@ -50,33 +66,15 @@ function createPartyPath(
   height: number,
 ): string {
   return [
-    // top-left
     `M ${RADIUS} 0`,
-
-    // top
     `H ${width - RADIUS}`,
-
-    // top-right
     `Q ${width} 0 ${width} ${RADIUS}`,
-
-    // right edge
     `V ${height - DIAGONAL}`,
-
-    // diagonal
     `L ${width - DIAGONAL} ${height}`,
-
-    // bottom edge
     `H ${RADIUS}`,
-
-    // bottom-left
     `Q 0 ${height} 0 ${height - RADIUS}`,
-
-    // left edge
     `V ${RADIUS}`,
-
-    // top-left
     `Q 0 0 ${RADIUS} 0`,
-
     `Z`,
   ].join(' ');
 }
@@ -88,6 +86,11 @@ export function PartyCard({
   date,
   time,
 
+  attendees = [],
+  going = 0,
+  capacity,
+  access,
+
   width,
   height = DEFAULT_HEIGHT,
 
@@ -96,40 +99,57 @@ export function PartyCard({
   onOpen,
   onRegister,
 }: PartyCardProps) {
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth } =
+    useWindowDimensions();
 
-  const cardWidth = width ?? screenWidth - 32;
+  const cardWidth =
+    width ?? screenWidth - 32;
 
-  const [open, setOpen] = useState(false);
-  const [pressed, setPressed] = useState(false);
+  const [open, setOpen] =
+    useState(false);
 
-  /*
-   * One value controls the entire spatial transition.
-   *
-   * 0 = completely closed
-   * 1 = completely open
-   */
-  const progress = useRef(new Animated.Value(0)).current;
+  const [pressed, setPressed] =
+    useState(false);
 
-  /*
-   * Separate tactile press value.
-   *
-   * This is intentionally tiny.
-   * It should be felt rather than noticed.
-   */
-  const press = useRef(new Animated.Value(0)).current;
+  const progress =
+    useRef(
+      new Animated.Value(0),
+    ).current;
 
-  const animatePress = (value: number) => {
+  const press =
+    useRef(
+      new Animated.Value(0),
+    ).current;
+
+  const animatePress = (
+    value: number,
+  ) => {
     Animated.timing(press, {
       toValue: value,
-      duration: value === 1 ? 70 : 110,
-      easing: Easing.out(Easing.quad),
+      duration:
+        value === 1 ? 70 : 110,
+      easing: Easing.out(
+        Easing.quad,
+      ),
       useNativeDriver: true,
     }).start();
   };
 
-  const openParty = () => {
+  const toggleOpen = () => {
+    animatePress(0);
+
     if (open) {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.inOut(
+          Easing.cubic,
+        ),
+        useNativeDriver: true,
+      }).start(() => {
+        setOpen(false);
+      });
+
       return;
     }
 
@@ -137,135 +157,91 @@ export function PartyCard({
 
     Animated.timing(progress, {
       toValue: 1,
-      duration: 390,
-      easing: Easing.out(Easing.cubic),
+      duration: 320,
+      easing: Easing.out(
+        Easing.cubic,
+      ),
       useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        onOpen?.();
-      }
-    });
-  };
-
-  const closeParty = () => {
-    if (!open) {
-      return;
-    }
-
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: 330,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        setOpen(false);
-      }
-    });
-  };
-
-  const handleFrontPress = () => {
-    animatePress(0);
-
-    if (open) {
-      closeParty();
-      return;
-    }
-
-    openParty();
+    }).start();
   };
 
   /*
-   * ------------------------------------------------------------
-   * FRONT SURFACE
-   * ------------------------------------------------------------
+   * The card itself is the interaction.
    *
    * IMPORTANT:
+   * Tapping the card does NOT navigate.
    *
-   * We are NOT scaling the card down.
-   *
-   * It translates diagonally toward the upper-left while
-   * becoming very slightly smaller.
-   *
-   * The movement is deliberately asymmetric.
+   * Navigation only happens through
+   * the explicit "VIEW PARTY" action.
    */
 
-  const frontTranslateX = Animated.add(
+  const frontTranslateX =
     progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, -38],
-    }),
-    press.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 0],
-    }),
-  );
+      outputRange: [0, -34],
+    });
 
-  const frontTranslateY = Animated.add(
+  const frontTranslateY =
     progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, -30],
-    }),
-    press.interpolate({
+      outputRange: [0, -24],
+    });
+
+  const frontScale =
+    progress.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, 2],
-    }),
-  );
+      outputRange: [1, 0.97],
+    });
 
-  const frontScale = progress.interpolate({
-    inputRange: [0, 0.55, 1],
-    outputRange: [1, 0.985, 0.965],
-  });
+  const frontOpacity =
+    progress.interpolate({
+      inputRange: [0, 0.7, 1],
+      outputRange: [1, 0.7, 0],
+    });
 
-  const frontShadowOpacity = progress.interpolate({
-    inputRange: [0, 0.45, 1],
-    outputRange: [0.34, 0.20, 0],
-  });
+  const pageScale =
+    progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.97, 1],
+    });
 
-  /*
-   * ------------------------------------------------------------
-   * UNDERLYING PAGE
-   * ------------------------------------------------------------
-   *
-   * It is already there.
-   *
-   * We don't fade in a replacement card.
-   *
-   * It rises forward as the front surface retracts.
-   */
+  const pageTranslateY =
+    progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [12, 0],
+    });
 
-  const pageScale = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.965, 1],
-  });
+  const pageOpacity =
+    progress.interpolate({
+      inputRange: [0, 0.2, 0.7, 1],
+      outputRange: [0, 0.4, 0.85, 1],
+    });
 
-  const pageTranslateY = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [14, 0],
-  });
+  const registerTranslateY =
+    progress.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [14, 6, 0],
+    });
 
-  const pageOpacity = progress.interpolate({
-    inputRange: [0, 0.18, 0.5, 1],
-    outputRange: [0, 0.45, 0.85, 1],
-  });
+  const registerOpacity =
+    progress.interpolate({
+      inputRange: [0, 0.5, 0.75, 1],
+      outputRange: [0, 0, 0.7, 1],
+    });
 
-  /*
-   * Registration action is revealed slightly later than the
-   * underlying page.
-   *
-   * This gives the eye somewhere to land.
-   */
-  const registerTranslateY = progress.interpolate({
-    inputRange: [0, 0.45, 1],
-    outputRange: [14, 8, 0],
-  });
+  const path =
+    createPartyPath(
+      cardWidth,
+      height,
+    );
 
-  const registerOpacity = progress.interpolate({
-    inputRange: [0, 0.45, 0.7, 1],
-    outputRange: [0, 0, 0.7, 1],
-  });
-
-  const path = createPartyPath(cardWidth, height);
+  const spotsLeft =
+    capacity !== undefined
+      ? Math.max(
+          capacity - going,
+          0,
+        )
+      : undefined;
 
   return (
     <View
@@ -278,22 +254,23 @@ export function PartyCard({
       ]}
     >
       {/* ======================================================
-          PARTY PAGE
+          EXPANDED CARD
           ====================================================== */}
 
       <Animated.View
-        pointerEvents={open ? 'auto' : 'none'}
+        pointerEvents={
+          open ? 'auto' : 'none'
+        }
         style={[
-          styles.partyPage,
+          styles.expandedCard,
           {
             width: cardWidth,
             height,
-          },
-          {
             opacity: pageOpacity,
             transform: [
               {
-                translateY: pageTranslateY,
+                translateY:
+                  pageTranslateY,
               },
               {
                 scale: pageScale,
@@ -302,126 +279,255 @@ export function PartyCard({
           },
         ]}
       >
-        <View style={styles.pageContent}>
-          <View style={styles.pageEyebrow}>
-            <View style={styles.liveIndicator} />
+        <View
+          style={styles.expandedContent}
+        >
+          <View>
+            <View
+              style={styles.eyebrow}
+            >
+              <View
+                style={styles.liveDot}
+              />
 
-            <Text style={styles.pageEyebrowText}>
-              PARTY
+              <Text
+                style={
+                  styles.eyebrowText
+                }
+              >
+                PARTY
+              </Text>
+            </View>
+
+            <Text
+              style={
+                styles.expandedTitle
+              }
+              numberOfLines={2}
+            >
+              {title}
             </Text>
+
+            {host ? (
+              <Text
+                style={
+                  styles.expandedHost
+                }
+              >
+                Hosted by {host}
+              </Text>
+            ) : null}
           </View>
 
-          <Text style={styles.pageTitle}>
-            {title}
-          </Text>
+          <View
+            style={styles.expandedMiddle}
+          >
+            <View
+              style={styles.infoRow}
+            >
+              {location ? (
+                <View
+                  style={styles.infoBlock}
+                >
+                  <Text
+                    style={
+                      styles.infoLabel
+                    }
+                  >
+                    WHERE
+                  </Text>
 
-          {host ? (
-            <Text style={styles.pageHost}>
-              Hosted by {host}
-            </Text>
-          ) : null}
+                  <Text
+                    style={
+                      styles.infoValue
+                    }
+                  >
+                    {location}
+                  </Text>
+                </View>
+              ) : null}
 
-          {location ? (
-            <Text style={styles.pageLocation}>
-              {location}
-            </Text>
-          ) : null}
+              {date || time ? (
+                <View
+                  style={styles.infoBlock}
+                >
+                  <Text
+                    style={
+                      styles.infoLabel
+                    }
+                  >
+                    WHEN
+                  </Text>
 
-          <View style={styles.metaRow}>
-            {date ? (
-              <View>
-                <Text style={styles.metaLabel}>
-                  DATE
+                  <Text
+                    style={
+                      styles.infoValue
+                    }
+                  >
+                    {[date, time]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View
+              style={styles.peopleRow}
+            >
+              <AvatarStack
+                people={attendees}
+                max={5}
+                size="small"
+              />
+
+              <View
+                style={
+                  styles.peopleInfo
+                }
+              >
+                <Text
+                  style={
+                    styles.peopleCount
+                  }
+                >
+                  {going > 0
+                    ? `${going} going`
+                    : 'People going'}
                 </Text>
 
-                <Text style={styles.metaValue}>
-                  {date}
+                {capacity !==
+                undefined ? (
+                  <Text
+                    style={
+                      styles.peopleSecondary
+                    }
+                  >
+                    {spotsLeft === 0
+                      ? 'Full'
+                      : `${spotsLeft} spots left`}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            {access ? (
+              <View
+                style={
+                  styles.accessPill
+                }
+              >
+                <Text
+                  style={
+                    styles.accessText
+                  }
+                >
+                  {access}
                 </Text>
               </View>
             ) : null}
+          </View>
 
-            {time ? (
-              <View>
-                <Text style={styles.metaLabel}>
-                  TIME
+          <View
+            style={styles.expandedActions}
+          >
+            <Animated.View
+              style={{
+                opacity:
+                  registerOpacity,
+                transform: [
+                  {
+                    translateY:
+                      registerTranslateY,
+                  },
+                ],
+              }}
+            >
+              <Pressable
+                onPress={onRegister}
+                hitSlop={10}
+                style={({ pressed }) => [
+                  styles.joinButton,
+                  pressed &&
+                    styles.joinButtonPressed,
+                ]}
+              >
+                <Text
+                  style={
+                    styles.joinText
+                  }
+                >
+                  {registered
+                    ? 'JOINED'
+                    : 'JOIN'}
                 </Text>
+              </Pressable>
+            </Animated.View>
 
-                <Text style={styles.metaValue}>
-                  {time}
-                </Text>
-              </View>
-            ) : null}
+            <Pressable
+              onPress={onOpen}
+              style={({ pressed }) => [
+                styles.viewButton,
+                pressed &&
+                  styles.viewButtonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`View ${title}`}
+            >
+              <Text
+                style={
+                  styles.viewButtonText
+                }
+              >
+                VIEW PARTY
+              </Text>
+
+              <Text
+                style={
+                  styles.viewArrow
+                }
+              >
+                →
+              </Text>
+            </Pressable>
           </View>
         </View>
-
-        {/* Registration is physically part of the page underneath. */}
-        <Animated.View
-          style={[
-            styles.registerPosition,
-            {
-              opacity: registerOpacity,
-              transform: [
-                {
-                  translateY: registerTranslateY,
-                },
-              ],
-            },
-          ]}
-        >
-          <Pressable
-            onPress={(event) => {
-              event.stopPropagation?.();
-              onRegister?.();
-            }}
-            hitSlop={10}
-            style={({ pressed: buttonPressed }) => [
-              styles.registerButton,
-              buttonPressed && styles.registerButtonPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={
-              registered
-                ? `Leave ${title}`
-                : `Join ${title}`
-            }
-          >
-            <Text style={styles.registerText}>
-              {registered ? 'JOINED' : 'JOIN'}
-            </Text>
-          </Pressable>
-        </Animated.View>
       </Animated.View>
 
       {/* ======================================================
-          FRONT PARTY SURFACE
+          CLOSED CARD
           ====================================================== */}
 
       <Animated.View
+        pointerEvents={
+          open ? 'none' : 'auto'
+        }
         style={[
           styles.frontLayer,
           {
             width: cardWidth,
             height,
-          },
-          {
+            opacity:
+              frontOpacity,
             transform: [
               {
-                translateX: frontTranslateX,
+                translateX:
+                  frontTranslateX,
               },
               {
-                translateY: frontTranslateY,
+                translateY:
+                  frontTranslateY,
               },
               {
                 scale: frontScale,
               },
             ],
-            shadowOpacity: frontShadowOpacity,
           },
         ]}
       >
         <Pressable
           style={styles.frontPressArea}
-          onPress={handleFrontPress}
+          onPress={toggleOpen}
           onPressIn={() => {
             setPressed(true);
             animatePress(1);
@@ -430,21 +536,17 @@ export function PartyCard({
             setPressed(false);
             animatePress(0);
           }}
-          hitSlop={2}
-          pressRetentionOffset={12}
           accessibilityRole="button"
           accessibilityLabel={`${title} party`}
-          accessibilityHint={
-            open
-              ? 'Closes the party'
-              : 'Opens the party'
-          }
+          accessibilityHint="Expand party details"
         >
           <Svg
             width={cardWidth}
             height={height}
             viewBox={`0 0 ${cardWidth} ${height}`}
-            style={StyleSheet.absoluteFill}
+            style={
+              StyleSheet.absoluteFill
+            }
           >
             <Path
               d={path}
@@ -455,36 +557,48 @@ export function PartyCard({
           <View
             style={[
               styles.frontContent,
-              pressed && styles.frontContentPressed,
+              pressed &&
+                styles.frontContentPressed,
             ]}
           >
             <View>
-              <Text style={styles.frontEyebrow}>
+              <Text
+                style={
+                  styles.frontEyebrow
+                }
+              >
                 {host
                   ? `HOSTED BY ${host.toUpperCase()}`
                   : 'PARTY'}
               </Text>
 
               <Text
-                style={styles.frontTitle}
+                style={
+                  styles.frontTitle
+                }
                 numberOfLines={2}
               >
                 {title}
               </Text>
             </View>
 
-            <View style={styles.frontBottom}>
+            <View>
               {location ? (
                 <Text
-                  style={styles.frontLocation}
-                  numberOfLines={1}
+                  style={
+                    styles.frontLocation
+                  }
                 >
                   {location}
                 </Text>
               ) : null}
 
               {date || time ? (
-                <Text style={styles.frontDate}>
+                <Text
+                  style={
+                    styles.frontDate
+                  }
+                >
                   {[date, time]
                     .filter(Boolean)
                     .join('  •  ')}
@@ -504,110 +618,99 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 
-  /*
-   * ==========================================================
-   * PARTY PAGE
-   * ==========================================================
-   */
-
-  partyPage: {
+  expandedCard: {
     position: 'absolute',
-
     left: 0,
     top: 0,
 
     borderRadius: RADIUS,
 
-    backgroundColor: COLORS.page,
+    backgroundColor:
+      COLORS.page,
 
     overflow: 'hidden',
   },
 
-  pageContent: {
+  expandedContent: {
     flex: 1,
 
-    paddingTop: 28,
-    paddingLeft: 28,
-    paddingRight: 28,
-    paddingBottom: 74,
+    padding: 24,
+
+    justifyContent:
+      'space-between',
   },
 
-  pageEyebrow: {
+  eyebrow: {
     flexDirection: 'row',
     alignItems: 'center',
 
     gap: 8,
 
-    marginBottom: 16,
+    marginBottom: 10,
   },
 
-  liveIndicator: {
+  liveDot: {
     width: 7,
     height: 7,
 
     borderRadius: 4,
 
-    backgroundColor: COLORS.cyan,
+    backgroundColor:
+      COLORS.cyan,
   },
 
-  pageEyebrowText: {
+  eyebrowText: {
     fontSize: 10,
     fontWeight: '800',
 
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
 
     color: COLORS.cyan,
   },
 
-  pageTitle: {
-    fontSize: 31,
-    lineHeight: 34,
+  expandedTitle: {
+    fontSize: 27,
+    lineHeight: 31,
 
     fontWeight: '800',
 
-    letterSpacing: -0.8,
+    letterSpacing: -0.7,
 
     color: COLORS.white,
   },
 
-  pageHost: {
-    marginTop: 8,
+  expandedHost: {
+    marginTop: 5,
 
-    fontSize: 13,
-
-    color: COLORS.secondary,
-  },
-
-  pageLocation: {
-    marginTop: 4,
-
-    fontSize: 13,
+    fontSize: 12,
 
     color: COLORS.secondary,
   },
 
-  metaRow: {
-    position: 'absolute',
+  expandedMiddle: {
+    gap: 16,
+  },
 
-    left: 28,
-    bottom: 22,
-
+  infoRow: {
     flexDirection: 'row',
-
     gap: 28,
   },
 
-  metaLabel: {
+  infoBlock: {
+    flex: 1,
+  },
+
+  infoLabel: {
     fontSize: 9,
     fontWeight: '800',
 
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
 
     color: COLORS.tertiary,
   },
 
-  metaValue: {
-    marginTop: 3,
+  infoValue: {
+    marginTop: 4,
 
     fontSize: 12,
     fontWeight: '600',
@@ -615,37 +718,83 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
 
-  registerPosition: {
-    position: 'absolute',
-
-    right: 18,
-    bottom: 16,
+  peopleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
-  registerButton: {
-    minWidth: 82,
-    height: 44,
+  peopleInfo: {
+    marginLeft: 12,
+  },
 
-    paddingHorizontal: 18,
+  peopleCount: {
+    fontSize: 13,
+    fontWeight: '700',
 
-    borderRadius: 22,
+    color: COLORS.white,
+  },
+
+  peopleSecondary: {
+    marginTop: 2,
+
+    fontSize: 11,
+
+    color: COLORS.secondary,
+  },
+
+  accessPill: {
+    alignSelf: 'flex-start',
+
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+
+    borderRadius: 999,
+
+    backgroundColor:
+      COLORS.interactive,
+  },
+
+  accessText: {
+    fontSize: 10,
+    fontWeight: '700',
+
+    letterSpacing: 0.4,
+
+    color: COLORS.secondary,
+  },
+
+  expandedActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    gap: 10,
+  },
+
+  joinButton: {
+    minWidth: 78,
+    height: 42,
+
+    paddingHorizontal: 17,
+
+    borderRadius: 21,
 
     alignItems: 'center',
     justifyContent: 'center',
 
-    backgroundColor: COLORS.magenta,
+    backgroundColor:
+      COLORS.magenta,
   },
 
-  registerButtonPressed: {
+  joinButtonPressed: {
     transform: [
       {
-        scale: 0.96,
+        scale: 0.95,
       },
     ],
   },
 
-  registerText: {
-    fontSize: 12,
+  joinText: {
+    fontSize: 11,
     fontWeight: '800',
 
     letterSpacing: 0.9,
@@ -653,11 +802,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  /*
-   * ==========================================================
-   * FRONT SURFACE
-   * ==========================================================
-   */
+  viewButton: {
+    flex: 1,
+
+    height: 42,
+
+    paddingHorizontal: 14,
+
+    borderRadius: 21,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    backgroundColor:
+      COLORS.interactive,
+  },
+
+  viewButtonPressed: {
+    opacity: 0.7,
+  },
+
+  viewButtonText: {
+    fontSize: 10,
+    fontWeight: '800',
+
+    letterSpacing: 0.8,
+
+    color: COLORS.white,
+  },
+
+  viewArrow: {
+    marginLeft: 7,
+
+    fontSize: 16,
+    fontWeight: '600',
+
+    color: COLORS.cyan,
+  },
 
   frontLayer: {
     position: 'absolute',
@@ -671,6 +853,7 @@ const styles = StyleSheet.create({
       height: 12,
     },
     shadowRadius: 20,
+    shadowOpacity: 0.3,
   },
 
   frontPressArea: {
@@ -680,12 +863,10 @@ const styles = StyleSheet.create({
   frontContent: {
     flex: 1,
 
-    justifyContent: 'space-between',
+    justifyContent:
+      'space-between',
 
-    paddingTop: 30,
-    paddingLeft: 28,
-    paddingRight: 28,
-    paddingBottom: 28,
+    padding: 28,
   },
 
   frontContentPressed: {
@@ -718,10 +899,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
 
     color: COLORS.white,
-  },
-
-  frontBottom: {
-    paddingRight: 44,
   },
 
   frontLocation: {
