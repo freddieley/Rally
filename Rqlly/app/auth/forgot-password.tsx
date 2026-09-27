@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, {
+  useState,
+} from 'react';
+
 import {
   StyleSheet,
   View,
 } from 'react-native';
+
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,11 +18,25 @@ import {
   spacing,
 } from '../../components/ui';
 
-import { AuthBackground } from '../../components/auth/AuthBackground';
-import { AuthHeader } from '../../components/auth/AuthHeader';
+import {
+  AuthBackground,
+} from '../../components/auth/AuthBackground';
+
+import {
+  AuthHeader,
+} from '../../components/auth/AuthHeader';
+
+import {
+  RqllyScreen,
+} from '../../components/motion/RqllyScreen';
+
+import {
+  motion,
+} from '../../components/motion/motion';
 
 export default function ForgotPasswordScreen() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] =
+    useState('');
 
   return (
     <AuthBackground variant="cyan">
@@ -26,57 +44,78 @@ export default function ForgotPasswordScreen() {
         style={styles.safeArea}
         edges={['top', 'bottom']}
       >
-        <AuthHeader />
+        <RqllyScreen>
+          <AuthHeader />
+        </RqllyScreen>
 
         <View style={styles.container}>
-          <View>
-            <RqllyText variant="title">
-              Reset your password
-            </RqllyText>
+          <RqllyScreen
+            delay={motion.delay.first}
+          >
+            <View>
+              <RqllyText variant="title">
+                Reset your password
+              </RqllyText>
 
+              <RqllyText
+                variant="body"
+                color="secondary"
+                style={styles.subtitle}
+              >
+                Enter your email and we'll
+                send you a reset link.
+              </RqllyText>
+            </View>
+          </RqllyScreen>
+
+          <RqllyScreen
+            delay={motion.delay.second}
+          >
+            <View style={styles.form}>
+              <RqllyInput
+                label="Email address"
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={
+                  setEmail
+                }
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+              />
+
+              <RqllyButton
+                size="large"
+                fullWidth
+                style={styles.button}
+                onPress={() =>
+                  router.push(
+                    '/auth/reset-password',
+                  )
+                }
+              >
+                Send reset link
+              </RqllyButton>
+            </View>
+          </RqllyScreen>
+
+          <RqllyScreen
+            delay={motion.delay.fourth}
+          >
             <RqllyText
-              variant="body"
+              variant="small"
               color="secondary"
-              style={styles.subtitle}
-            >
-              Enter your email and we'll send you
-              a reset link.
-            </RqllyText>
-          </View>
-
-          <View style={styles.form}>
-            <RqllyInput
-              label="Email address"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-            />
-
-            <RqllyButton
-              size="large"
-              fullWidth
-              style={styles.button}
+              align="center"
               onPress={() =>
-                router.push('/auth/reset-password')
+                router.push(
+                  '/auth/sign-in',
+                )
               }
             >
-              Send reset link
-            </RqllyButton>
-          </View>
-
-          <RqllyText
-            variant="small"
-            color="secondary"
-            align="center"
-            onPress={() =>
-              router.push('/auth/sign-in')
-            }
-          >
-            Back to sign in
-          </RqllyText>
+              Back to sign in
+            </RqllyText>
+          </RqllyScreen>
         </View>
       </SafeAreaView>
     </AuthBackground>
@@ -90,10 +129,14 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.lg,
-    justifyContent: 'space-between',
+    paddingHorizontal:
+      spacing.xl,
+    paddingTop:
+      spacing.xxl,
+    paddingBottom:
+      spacing.lg,
+    justifyContent:
+      'space-between',
   },
 
   subtitle: {
@@ -106,6 +149,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: colors.connection,
+    backgroundColor:
+      colors.connection,
   },
 });

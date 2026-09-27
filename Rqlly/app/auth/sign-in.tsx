@@ -30,10 +30,6 @@ import {
 } from '../../components/motion/RqllyScreen';
 
 import {
-  RqllyPressable,
-} from '../../components/motion/RqllyPressable';
-
-import {
   motion,
 } from '../../components/motion/motion';
 
@@ -50,7 +46,7 @@ export default function SignInScreen() {
         style={styles.safeArea}
         edges={['top', 'bottom']}
       >
-        <RqllyScreen delay={0}>
+        <RqllyScreen>
           <AuthHeader />
         </RqllyScreen>
 
@@ -81,7 +77,9 @@ export default function SignInScreen() {
                 label="Email or username"
                 placeholder="you@example.com"
                 value={identifier}
-                onChangeText={setIdentifier}
+                onChangeText={
+                  setIdentifier
+                }
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
@@ -92,7 +90,9 @@ export default function SignInScreen() {
                 label="Password"
                 placeholder="Enter your password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={
+                  setPassword
+                }
                 secureTextEntry
                 textContentType="password"
               />
@@ -124,19 +124,16 @@ export default function SignInScreen() {
           <RqllyScreen
             delay={motion.delay.fourth}
           >
-            <RqllyPressable
+            <RqllyButton
+              size="large"
+              fullWidth
+              style={styles.button}
               onPress={() =>
                 router.push('/loading')
               }
             >
-              <RqllyButton
-                size="large"
-                fullWidth
-                style={styles.button}
-              >
-                Sign in
-              </RqllyButton>
-            </RqllyPressable>
+              Sign in
+            </RqllyButton>
           </RqllyScreen>
 
           <RqllyScreen
@@ -176,10 +173,14 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.lg,
-    justifyContent: 'space-between',
+    paddingHorizontal:
+      spacing.xl,
+    paddingTop:
+      spacing.xxl,
+    paddingBottom:
+      spacing.lg,
+    justifyContent:
+      'space-between',
   },
 
   subtitle: {
@@ -192,14 +193,17 @@ const styles = StyleSheet.create({
 
   forgot: {
     alignSelf: 'center',
-    paddingVertical: spacing.xs,
+    paddingVertical:
+      spacing.xs,
   },
 
   button: {
-    backgroundColor: colors.connection,
+    backgroundColor:
+      colors.connection,
   },
 
   footer: {
-    paddingTop: spacing.lg,
+    paddingTop:
+      spacing.lg,
   },
 });

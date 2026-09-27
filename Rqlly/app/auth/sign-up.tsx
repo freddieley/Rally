@@ -29,10 +29,6 @@ import {
 } from '../../components/motion/RqllyScreen';
 
 import {
-  RqllyPressable,
-} from '../../components/motion/RqllyPressable';
-
-import {
   motion,
 } from '../../components/motion/motion';
 
@@ -80,7 +76,9 @@ export default function SignUpScreen() {
                 label="Email or phone number"
                 placeholder="you@example.com"
                 value={identifier}
-                onChangeText={setIdentifier}
+                onChangeText={
+                  setIdentifier
+                }
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
@@ -91,7 +89,9 @@ export default function SignUpScreen() {
                 label="Password"
                 placeholder="Create a password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={
+                  setPassword
+                }
                 secureTextEntry
                 textContentType="newPassword"
               />
@@ -101,19 +101,18 @@ export default function SignUpScreen() {
           <RqllyScreen
             delay={motion.delay.fourth}
           >
-            <RqllyPressable
+            <RqllyButton
+              size="large"
+              fullWidth
+              style={styles.button}
               onPress={() =>
-                router.push('/auth/verify')
+                router.push(
+                  '/auth/verify',
+                )
               }
             >
-              <RqllyButton
-                size="large"
-                fullWidth
-                style={styles.button}
-              >
-                Continue
-              </RqllyButton>
-            </RqllyPressable>
+              Continue
+            </RqllyButton>
           </RqllyScreen>
 
           <RqllyScreen
@@ -153,10 +152,14 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.lg,
-    justifyContent: 'space-between',
+    paddingHorizontal:
+      spacing.xl,
+    paddingTop:
+      spacing.xxl,
+    paddingBottom:
+      spacing.lg,
+    justifyContent:
+      'space-between',
   },
 
   subtitle: {
@@ -168,10 +171,12 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: colors.brand,
+    backgroundColor:
+      colors.brand,
   },
 
   footer: {
-    paddingTop: spacing.lg,
+    paddingTop:
+      spacing.lg,
   },
 });

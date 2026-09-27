@@ -4,36 +4,48 @@ import React, {
 
 import {
   Animated,
-  Easing,
   Pressable,
   PressableProps,
-  StyleSheet,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 
 import { motion } from './motion';
 
 interface RqllyPressableProps
-  extends PressableProps {
+  extends Omit<
+    PressableProps,
+    'style'
+  > {
   children: React.ReactNode;
   pressedScale?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function RqllyPressable({
   children,
-  pressedScale = motion.scale.pressed,
+  pressedScale =
+    motion.scale.pressed,
   style,
+  onPressIn,
+  onPressOut,
+  disabled,
   ...props
 }: RqllyPressableProps) {
   const scale = useRef(
     new Animated.Value(1),
   ).current;
 
-  const animateTo = (value: number) => {
+  const animateTo = (
+    value: number,
+  ) => {
+    if (disabled) {
+      return;
+    }
+
     Animated.spring(scale, {
       toValue: value,
-      damping: 18,
-      stiffness: 300,
-      mass: 0.5,
+      ...motion.spring.press,
       useNativeDriver: true,
     }).start();
   };
@@ -41,32 +53,27 @@ export function RqllyPressable({
   return (
     <Pressable
       {...props}
+      disabled={disabled}
       onPressIn={(event) => {
         animateTo(pressedScale);
-        props.onPressIn?.(event);
+        onPressIn?.(event);
       }}
       onPressOut={(event) => {
         animateTo(1);
-        props.onPressOut?.(event);
+        onPressOut?.(event);
       }}
       style={style}
     >
       <Animated.View
-        style={[
-          styles.container,
-          {
-            transform: [{ scale }],
-          },
-        ]}
+        style={{
+          width: '100%',
+          transform: [
+            { scale },
+          ],
+        }}
       >
         {children}
       </Animated.View>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-});

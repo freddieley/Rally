@@ -1,8 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, {
+  useEffect,
+  useRef,
+} from 'react';
+
 import {
   Animated,
   Easing,
-  StyleSheet,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 
@@ -11,56 +15,81 @@ import { motion } from './motion';
 interface RqllyScreenProps {
   children: React.ReactNode;
   delay?: number;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   distance?: number;
+  disabled?: boolean;
 }
 
 export function RqllyScreen({
   children,
-  delay = 0,
+  delay = motion.delay.none,
   style,
   distance = motion.distance.normal,
+  disabled = false,
 }: RqllyScreenProps) {
   const opacity = useRef(
-    new Animated.Value(0),
+    new Animated.Value(disabled ? 1 : 0),
   ).current;
 
   const translateY = useRef(
-    new Animated.Value(distance),
+    new Animated.Value(
+      disabled ? 0 : distance,
+    ),
   ).current;
 
   const scale = useRef(
-    new Animated.Value(motion.scale.entrance),
+    new Animated.Value(
+      disabled
+        ? 1
+        : motion.scale.entrance,
+    ),
   ).current;
 
   useEffect(() => {
-    const animation = Animated.parallel([
+    if (disabled) {
+      opacity.setValue(1);
+      translateY.setValue(0);
+      scale.setValue(1);
+      return;
+    }
+
+    opacity.setValue(0);
+    translateY.setValue(distance);
+    scale.setValue(motion.scale.entrance);
+
+    const opacityAnimation =
       Animated.timing(opacity, {
         toValue: 1,
         duration: motion.duration.entrance,
         delay,
-        easing: Easing.out(Easing.cubic),
+        easing: Easing.out(
+          Easing.cubic,
+        ),
         useNativeDriver: true,
-      }),
+      });
 
-      Animated.spring(translateY, {
-        toValue: 0,
-        delay,
-        damping: 19,
-        stiffness: 180,
-        mass: 0.8,
-        useNativeDriver: true,
-      }),
+    const movementAnimation =
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          delay,
+          ...motion.spring.entrance,
+          useNativeDriver: true,
+        }),
 
-      Animated.spring(scale, {
-        toValue: 1,
-        delay,
-        damping: 19,
-        stiffness: 180,
-        mass: 0.8,
-        useNativeDriver: true,
-      }),
-    ]);
+        Animated.spring(scale, {
+          toValue: 1,
+          delay,
+          ...motion.spring.entrance,
+          useNativeDriver: true,
+        }),
+      ]);
+
+    const animation =
+      Animated.parallel([
+        opacityAnimation,
+        movementAnimation,
+      ]);
 
     animation.start();
 
@@ -69,6 +98,7 @@ export function RqllyScreen({
     };
   }, [
     delay,
+    disabled,
     distance,
     opacity,
     scale,
@@ -78,24 +108,18 @@ export function RqllyScreen({
   return (
     <Animated.View
       style={[
-        styles.container,
-        style,
         {
+          width: '100%',
           opacity,
           transform: [
             { translateY },
             { scale },
           ],
         },
+        style,
       ]}
     >
       {children}
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-});

@@ -1,6 +1,10 @@
-import React from 'react';
+import React, {
+  useRef,
+} from 'react';
+
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   StyleProp,
   View,
@@ -22,7 +26,10 @@ export type ButtonVariant =
   | 'ghost'
   | 'destructive';
 
-export type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonSize =
+  | 'small'
+  | 'medium'
+  | 'large';
 
 export interface RqllyButtonProps {
   children: React.ReactNode;
@@ -42,13 +49,19 @@ export interface RqllyButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const heightMap: Record<ButtonSize, number> = {
+const heightMap: Record<
+  ButtonSize,
+  number
+> = {
   small: sizes.buttonSmall,
   medium: sizes.buttonMedium,
   large: sizes.buttonLarge,
 };
 
-const horizontalPaddingMap: Record<ButtonSize, number> = {
+const horizontalPaddingMap: Record<
+  ButtonSize,
+  number
+> = {
   small: 14,
   medium: 18,
   large: 22,
@@ -66,7 +79,12 @@ export function RqllyButton({
   fullWidth = false,
   style,
 }: RqllyButtonProps) {
-  const height = heightMap[size];
+  const scale = useRef(
+    new Animated.Value(1),
+  ).current;
+
+  const height =
+    heightMap[size];
 
   const backgroundColor =
     variant === 'primary'
@@ -86,69 +104,121 @@ export function RqllyButton({
         : colors.textSecondary;
 
   const borderWidth =
-    variant === 'secondary' ? 1 : 0;
+    variant === 'secondary'
+      ? 1
+      : variant === 'ghost'
+        ? 1
+        : 0;
 
   const borderColor =
     variant === 'secondary'
       ? colors.borderStrong
-      : 'transparent';
+      : variant === 'ghost'
+        ? colors.border
+        : 'transparent';
+
+  const animatePress = (
+    value: number,
+  ) => {
+    if (disabled || loading) {
+      return;
+    }
+
+    Animated.spring(scale, {
+      toValue: value,
+      damping: 18,
+      stiffness: 300,
+      mass: 0.5,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      style={({ pressed }) => [
-        {
-          minHeight: height,
-          paddingHorizontal: horizontalPaddingMap[size],
-          borderRadius: radius.pill,
-          backgroundColor,
-          borderWidth,
-          borderColor,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          alignSelf: fullWidth ? 'stretch' : 'flex-start',
-          opacity:
-            disabled
-              ? 0.45
-              : pressed
-                ? 0.78
-                : 1,
-        },
-        style,
-      ]}
+      onPressIn={() =>
+        animatePress(0.975)
+      }
+      onPressOut={() =>
+        animatePress(1)
+      }
+      accessibilityRole="button"
+      accessibilityState={{
+        disabled:
+          disabled || loading,
+        busy: loading,
+      }}
+      style={{
+        alignSelf: fullWidth
+          ? 'stretch'
+          : 'flex-start',
+      }}
     >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={textColor}
-        />
-      ) : (
-        <>
-          {leftIcon && (
-            <View style={{ marginRight: 8 }}>
-              {leftIcon}
-            </View>
-          )}
+      <Animated.View
+        style={[
+          {
+            minHeight: height,
+            paddingHorizontal:
+              horizontalPaddingMap[
+                size
+              ],
+            borderRadius: radius.pill,
+            backgroundColor,
+            borderWidth,
+            borderColor,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: disabled
+              ? 0.45
+              : 1,
+            transform: [
+              { scale },
+            ],
+          },
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={textColor}
+          />
+        ) : (
+          <>
+            {leftIcon && (
+              <View
+                style={{
+                  marginRight: 8,
+                }}
+              >
+                {leftIcon}
+              </View>
+            )}
 
-          <RqllyText
-            variant="button"
-            style={{
-              color: textColor,
-              ...typography.button,
-            }}
-          >
-            {children}
-          </RqllyText>
+            <RqllyText
+              variant="button"
+              style={{
+                color: textColor,
+                ...typography.button,
+              }}
+            >
+              {children}
+            </RqllyText>
 
-          {rightIcon && (
-            <View style={{ marginLeft: 8 }}>
-              {rightIcon}
-            </View>
-          )}
-        </>
-      )}
+            {rightIcon && (
+              <View
+                style={{
+                  marginLeft: 8,
+                }}
+              >
+                {rightIcon}
+              </View>
+            )}
+          </>
+        )}
+      </Animated.View>
     </Pressable>
   );
 }

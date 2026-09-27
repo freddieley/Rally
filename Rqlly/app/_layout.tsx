@@ -10,57 +10,74 @@ export default function RootLayout() {
         headerShown: false,
 
         contentStyle: {
-          backgroundColor: colors.canvas,
+          backgroundColor:
+            colors.canvas,
         },
 
-        animation: 'slide_from_right',
-
-        gestureEnabled: true,
-        gestureDirection: 'horizontal',
+        animation:
+          'simple_push',
 
         animationDuration: 320,
+
+        gestureEnabled: true,
+
+        gestureDirection:
+          'horizontal',
+
+        animationMatchesGesture: true,
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           animation: 'fade',
-          animationDuration: 450,
+          animationDuration: 420,
+          gestureEnabled: false,
         }}
       />
 
       <Stack.Screen
         name="auth/sign-in"
         options={{
-          animation: 'slide_from_right',
+          animation:
+            'simple_push',
+          animationDuration: 320,
         }}
       />
 
       <Stack.Screen
         name="auth/sign-up"
         options={{
-          animation: 'slide_from_right',
+          animation:
+            'simple_push',
+          animationDuration: 320,
         }}
       />
 
       <Stack.Screen
         name="auth/verify"
         options={{
-          animation: 'slide_from_right',
+          animation:
+            'simple_push',
+          animationDuration: 320,
         }}
       />
 
       <Stack.Screen
         name="auth/forgot-password"
         options={{
-          animation: 'slide_from_right',
+          animation:
+            'simple_push',
+          animationDuration: 320,
         }}
       />
 
       <Stack.Screen
         name="auth/reset-password"
         options={{
-          animation: 'slide_from_right',
+          animation:
+            'simple_push',
+          animationDuration: 320,
         }}
       />
 
@@ -68,6 +85,7 @@ export default function RootLayout() {
         name="loading"
         options={{
           animation: 'fade',
+          animationDuration: 300,
           gestureEnabled: false,
         }}
       />
@@ -76,6 +94,7 @@ export default function RootLayout() {
         name="onboarding"
         options={{
           animation: 'fade',
+          animationDuration: 360,
         }}
       />
 
@@ -83,6 +102,16 @@ export default function RootLayout() {
         name="error"
         options={{
           animation: 'fade',
+          animationDuration: 300,
+        }}
+      />
+      
+      <Stack.Screen
+        name="(app)"
+        options={{
+          headerShown: false,
+          animation: 'fade',
+          gestureEnabled: false,
         }}
       />
     </Stack>
